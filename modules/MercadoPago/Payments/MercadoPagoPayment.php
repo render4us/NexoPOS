@@ -18,8 +18,8 @@ class MercadoPagoPayment implements PaymentMethodInterface
 
     public function process(array $payload)
     {
-        $token  = settings()->get('mercadopago_access_token');
-        $device = settings()->get('mercadopago_device_id');
+        $token  = ns()->option->get('mercadopago_access_token');
+        $device = ns()->option->get('mercadopago_terminal_id');
 
         $response = Http::withToken($token)
             ->post("https://api.mercadopago.com/point/integration-api/devices/{$device}/orders", [
