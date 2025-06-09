@@ -7,6 +7,6 @@
     <description>Payment integration using Mercado Pago.</description>
     <settings>
         <setting key="mercadopago_access_token"/>
-        <setting key="mercadopago_device_id"/>
+        <setting key="mercadopago_terminal_id"/>
     </settings>
 </module>

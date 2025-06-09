@@ -9,15 +9,15 @@ class SettingsController extends Controller
     public function index()
     {
         return view('MercadoPago::settings', [
-            'token'     => settings()->get('mercadopago_access_token'),
-            'device_id' => settings()->get('mercadopago_device_id'),
+            'token'       => ns()->option->get('mercadopago_access_token'),
+            'terminal_id' => ns()->option->get('mercadopago_terminal_id'),
         ]);
     }
 
     public function save(Request $request)
     {
-        settings()->set('mercadopago_access_token', $request->input('mercadopago_access_token'));
-        settings()->set('mercadopago_device_id', $request->input('mercadopago_device_id'));
+        ns()->option->set('mercadopago_access_token', $request->input('mercadopago_access_token'));
+        ns()->option->set('mercadopago_terminal_id', $request->input('mercadopago_terminal_id'));
 
         return redirect()->back()->with('success', __('Settings saved'));
     }
