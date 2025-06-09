@@ -3,37 +3,46 @@ namespace Modules\MercadoPago\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Http;
+use MercadoPago\Client\Point\PointClient;
+use MercadoPago\Client\Common\RequestOptions;
+use MercadoPago\MercadoPagoConfig;
 
 class MercadoPagoController
 {
     public function pay(Request $request)
     {
         $order = $request->input('order');
-        $payload = [
-            'type' => 'point',
-            'external_reference' => $order['reference'] ?? 'order_'.time(),
-            'transactions' => [
-                'payments' => [
-                    [ 'amount' => (string) ($order['total'] ?? 0) ]
-                ]
+
+        MercadoPagoConfig::setAccessToken(config('mercadopago.access_token'));
+
+        $client = new PointClient();
+
+        $paymentRequest = [
+            'amount' => (float) ($order['total'] ?? 0),
+            'description' => 'POS Payment',
+            'payment' => [
+                'installments' => 1,
+                'type' => 'credit_card',
+                'installments_cost' => 'seller'
             ],
-            'config' => [
-                'point' => [
-                    'terminal_id' => config('mercadopago.terminal_id'),
-                    'print_on_terminal' => 'no_ticket',
-                    'ticket_number' => Str::random(8)
-                ]
-            ],
-            'description' => 'POS Payment'
+            'additional_info' => [
+                'external_reference' => $order['reference'] ?? 'order_'.time(),
+                'print_on_terminal' => true,
+                'ticket_number' => Str::random(8)
+            ]
         ];
 
-        $response = Http::withHeaders([
-            'Content-Type' => 'application/json',
-            'X-Idempotency-Key' => (string) Str::uuid(),
-            'Authorization' => 'Bearer '.config('mercadopago.access_token')
-        ])->post('https://api.mercadopago.com/v1/orders', $payload);
+        $options = new RequestOptions();
+        $options->setCustomHeaders([
+            'x-idempotency-key' => (string) Str::uuid(),
+        ]);
 
-        return response()->json($response->json());
+        $intent = $client->createPaymentIntent(
+            config('mercadopago.terminal_id'),
+            $paymentRequest,
+            $options
+        );
+
+        return response()->json(json_decode(json_encode($intent), true));
     }
 }
