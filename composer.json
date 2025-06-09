@@ -20,6 +20,7 @@
         "guzzlehttp/guzzle": "^7.0.1",
         "laravel/framework": "^11.0",
         "laravel/reverb": "@beta",
+        "laravel/sail": "^1.43",
         "laravel/sanctum": "^4.0",
         "laravel/telescope": "^5.0",
         "laravel/tinker": "^2.0",
