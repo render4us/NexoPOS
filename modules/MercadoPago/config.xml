@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<module>
+    <namespace>MercadoPago</namespace>
+    <version>1.0.0</version>
+    <author>NexoPOS</author>
+    <name>Mercado Pago</name>
+    <description>Payment integration using Mercado Pago.</description>
+</module>

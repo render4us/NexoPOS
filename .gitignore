@@ -12,6 +12,8 @@ worker.log
 *.ignore.*
 *.log.*
 modules/*
+!modules/MercadoPago/
+!modules/MercadoPago/**
 !modules/.temp
 modules/.temp/*
 !modules/index.html
