@@ -5,4 +5,8 @@
     <author>NexoPOS</author>
     <name>Mercado Pago</name>
     <description>Payment integration using Mercado Pago.</description>
+    <settings>
+        <setting key="mercadopago_access_token"/>
+        <setting key="mercadopago_device_id"/>
+    </settings>
 </module>
