@@ -1,15 +1,28 @@
 <?php
 namespace Modules\MercadoPago\Models;
 
-use App\Models\NsModel;
+use App\Models\Order;
+use Illuminate\Database\Eloquent\Model;
 
-class MercadoPagoTransaction extends NsModel
+class MercadoPagoTransaction extends Model
 {
-    protected $table = 'nexopos_mercadopago_transactions';
+    protected $table = 'mercadopago_transactions';
 
     protected $fillable = [
-        'payment_id',
+        'order_id',
+        'transaction_id',
         'status',
+        'payment_type',
         'payload',
     ];
+
+    protected $casts = [
+        'payload' => 'array',
+    ];
+
+    public function order()
+    {
+        return $this->belongsTo(Order::class);
+    }
 }
+

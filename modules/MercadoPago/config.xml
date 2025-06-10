@@ -4,7 +4,7 @@
     <version>1.0.0</version>
     <author>NexoPOS</author>
     <name>Mercado Pago</name>
-    <description>Payment integration using Mercado Pago.</description>
+    <description>Modulo de Pagamento pelo sistema do Mercado Pago</description>
     <settings>
         <setting key="mercadopago_access_token"/>
         <setting key="mercadopago_terminal_id"/>

@@ -1,24 +1,29 @@
 <?php
+
 namespace Modules\MercadoPago\Http\Controllers;
 
 use Illuminate\Http\Request;
-use Illuminate\Routing\Controller;
+use App\Http\Controllers\Controller;
+use Modules\MercadoPago\Models\MercadoPagoSetting;
 
 class SettingsController extends Controller
 {
-    public function index()
-    {
-        return view('MercadoPago::settings', [
-            'token'       => ns()->option->get('mercadopago_access_token'),
-            'terminal_id' => ns()->option->get('mercadopago_terminal_id'),
-        ]);
-    }
-
     public function save(Request $request)
     {
-        ns()->option->set('mercadopago_access_token', $request->input('mercadopago_access_token'));
-        ns()->option->set('mercadopago_terminal_id', $request->input('mercadopago_terminal_id'));
+        $request->validate([
+            'mercadopago_access_token' => 'required|string|max:255',
+            'mercadopago_terminal_id' => 'required|string|max:255',
+        ]);
 
-        return redirect()->back()->with('success', __('Settings saved'));
+        // Atualiza o primeiro (ou cria)
+        MercadoPagoSetting::updateOrCreate(
+            ['id' => 1], // Apenas um registro
+            [
+                'access_token' => $request->mercadopago_access_token,
+                'terminal_id' => $request->mercadopago_terminal_id,
+            ]
+        );
+
+        return redirect()->route('mercadopago.settings')->with('success', 'Configurações salvas com sucesso!');
     }
 }

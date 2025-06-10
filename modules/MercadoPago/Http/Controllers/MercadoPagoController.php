@@ -1,48 +1,41 @@
 <?php
+
+/**
+ * Mercado Pago Controller
+ * @since 1.0.0
+ * @package modules/MercadoPago
+**/
+
 namespace Modules\MercadoPago\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Support\Str;
-use MercadoPago\Client\Point\PointClient;
-use MercadoPago\Client\Common\RequestOptions;
-use MercadoPago\MercadoPagoConfig;
+use Illuminate\Support\Facades\View;
+use App\Http\Controllers\Controller;
+use Modules\MercadoPago\Models\MercadoPagoSetting;
 
-class MercadoPagoController
+
+
+class MercadoPagoController extends Controller
 {
-    public function pay(Request $request)
+    /**
+     * Main Page
+     * @since 1.0.0
+    **/
+    public function index()
     {
-        $order = $request->input('order');
-
-        MercadoPagoConfig::setAccessToken(config('mercadopago.access_token'));
-
-        $client = new PointClient();
-
-        $paymentRequest = [
-            'amount' => (float) ($order['total'] ?? 0),
-            'description' => 'POS Payment',
-            'payment' => [
-                'installments' => 1,
-                'type' => 'credit_card',
-                'installments_cost' => 'seller'
-            ],
-            'additional_info' => [
-                'external_reference' => $order['reference'] ?? 'order_'.time(),
-                'print_on_terminal' => true,
-                'ticket_number' => Str::random(8)
-            ]
-        ];
-
-        $options = new RequestOptions();
-        $options->setCustomHeaders([
-            'x-idempotency-key' => (string) Str::uuid(),
-        ]);
-
-        $intent = $client->createPaymentIntent(
-            config('mercadopago.terminal_id'),
-            $paymentRequest,
-            $options
-        );
-
-        return response()->json(json_decode(json_encode($intent), true));
+        return view( 'MercadoPago::index' );
     }
+
+
+    public function config()
+    {
+        $setting = MercadoPagoSetting::first();
+
+        return view('MercadoPago::config', [
+            'title' => 'Mercado Pago',
+             'description' => 'Configurações do mecanismo de pagamento',
+            'token' => $setting->access_token ?? '',
+            'terminal_id' => $setting->terminal_id ?? '',
+            ]);
+    }
+
 }
