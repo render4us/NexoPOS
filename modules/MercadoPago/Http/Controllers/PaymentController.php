@@ -4,6 +4,7 @@ namespace Modules\MercadoPago\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 use App\Http\Controllers\Controller;
 use Modules\MercadoPago\Models\MercadoPagoSetting;
 use Modules\MercadoPago\Models\MercadoPagoTransaction;
@@ -17,6 +18,8 @@ class PaymentController extends Controller
             'amount' => 'required|numeric|min:1',
             'payment_type' => 'required|string', // ex: credit_card, debit_card, etc
         ]);
+
+        Log::info('MercadoPago createIntent request', $request->all());
 
         // Buscar configurações do Mercado Pago
         $settings = MercadoPagoSetting::first();
@@ -41,12 +44,19 @@ class PaymentController extends Controller
             ]
         ];
 
+        Log::info('MercadoPago payload', $payload);
+
         // Enviar para o Mercado Pago
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
             'x-test-scope' => 'sandbox',
             'Authorization' => 'Bearer ' . $settings->access_token
         ])->post("https://api.mercadopago.com/point/integration-api/devices/{$settings->terminal_id}/payment-intents", $payload);
+
+        Log::info('MercadoPago response', [
+            'status' => $response->status(),
+            'body' => $response->json(),
+        ]);
 
         // Armazenar resultado
         MercadoPagoTransaction::create([

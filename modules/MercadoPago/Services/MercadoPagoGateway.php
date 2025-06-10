@@ -6,6 +6,7 @@ use App\Abstracts\AbstractPaymentMethod;
 use Modules\MercadoPago\Models\MercadoPagoSetting;
 use Modules\MercadoPago\Models\MercadoPagoTransaction;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Log;
 
 class MercadoPagoGateway extends AbstractPaymentMethod
 {
@@ -16,6 +17,8 @@ class MercadoPagoGateway extends AbstractPaymentMethod
 
     public function process($order)
     {
+        Log::info('MercadoPagoGateway process order', ['order' => $order]);
+
         $settings = MercadoPagoSetting::first();
 
         if (! $settings) {
@@ -41,10 +44,13 @@ class MercadoPagoGateway extends AbstractPaymentMethod
         ]);
 
         if ($response->failed()) {
+            Log::error('MercadoPagoGateway failed', ['body' => $response->body()]);
             return ns()->error('Erro ao iniciar pagamento no Mercado Pago: ' . $response->body());
         }
 
         $data = $response->json();
+
+        Log::info('MercadoPagoGateway success', ['data' => $data]);
 
         MercadoPagoTransaction::create([
             'order_id' => $order->id,
