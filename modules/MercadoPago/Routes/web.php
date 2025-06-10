@@ -5,6 +5,8 @@ use Modules\MercadoPago\Http\Controllers\MercadoPagoController;
 use Modules\MercadoPago\Http\Controllers\SettingsController;
 use Modules\MercadoPago\Http\Controllers\TransactionController;
 use Modules\MercadoPago\Http\Controllers\PaymentController;
+use Modules\MercadoPago\Services\MercadoPagoGateway;
+
 
 
 
@@ -13,3 +15,15 @@ Route::post('dashboard/mercadopago/settings/save', [SettingsController::class, '
 Route::get('dashboard/mercadopago/transactions', [TransactionController::class, 'index'])->name('mercadopago.transactions.index');
 Route::get('dashboard/mercadopago/transactions/{id}/payload', [TransactionController::class, 'payload'])->name('mercadopago.transactions.payload');
 Route::post('dashboard/mercadopago/payment-intent', [PaymentController::class, 'createIntent'])->name('mercadopago.payment.intent');
+
+
+Route::get('/mercadopago/test-log', function () {
+    $gateway = new MercadoPagoGateway();
+
+    return $gateway->pay(
+        (object)['id' => 1, 'uuid' => 'teste-uuid', 'code' => 'PED001'],
+        150,
+        null,
+        request()
+    );
+});

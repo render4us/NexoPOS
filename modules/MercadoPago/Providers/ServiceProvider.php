@@ -29,14 +29,9 @@ class ServiceProvider extends AppServiceProvider
                 ]);
                 return $menus;
             });
-            Hook::addFilter('ns-payment-methods', function ($methods) {
-                $methods['mercadopago'] = [
-                    'label' => 'Mercado Pago',
-                    'description' => 'Pagamento via integração Mercado Pago POS/Point',
-                    'namespace' => \Modules\MercadoPago\Services\MercadoPagoGateway::class,
-                    'icon' => 'la la-credit-card',
-                ];
 
+            Hook::addFilter('ns-registers-allowed-payment-type', function ($methods) {
+                $methods['mercadopago'] = \Modules\MercadoPago\Services\Mercadopago::class;
                 return $methods;
             });
         }

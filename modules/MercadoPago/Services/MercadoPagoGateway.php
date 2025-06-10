@@ -2,35 +2,36 @@
 
 namespace Modules\MercadoPago\Services;
 
-use App\Abstracts\AbstractPaymentMethod;
 use Modules\MercadoPago\Models\MercadoPagoSetting;
 use Modules\MercadoPago\Models\MercadoPagoTransaction;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 
-class MercadoPagoGateway extends AbstractPaymentMethod
+class MercadoPagoGateway
 {
     public function getLabel()
     {
         return 'Mercado Pago';
     }
 
-    public function process($order)
+    public function pay($order, $amount, $payment, $request)
     {
-        Log::info('MercadoPagoGateway process order', ['order' => $order]);
+        Log::info('MercadoPagoGateway@pay chamado', [
+            'order_id' => $order->id ?? null,
+            'amount' => $amount,
+        ]);
 
         $settings = MercadoPagoSetting::first();
 
-        if (! $settings) {
-            return ns()->error('Configurações do Mercado Pago não definidas.');
+        if (! $settings || !$settings->access_token || !$settings->terminal_id) {
+            return response()->json(['message' => 'Configurações do Mercado Pago inválidas.'], 422);
         }
 
         $response = Http::withHeaders([
             'Authorization' => 'Bearer ' . $settings->access_token,
-            'x-test-scope' => 'sandbox',
-            'Content-Type' => 'application/json',
+            'Content-Type'  => 'application/json',
         ])->post("https://api.mercadopago.com/point/integration-api/devices/{$settings->terminal_id}/payment-intents", [
-            'amount' => (int) ($order->total * 100),
+            'amount' => (int) ($amount * 100), // centavos
             'description' => "Pedido N° {$order->code}",
             'payment' => [
                 'installments' => 1,
@@ -45,21 +46,25 @@ class MercadoPagoGateway extends AbstractPaymentMethod
 
         if ($response->failed()) {
             Log::error('MercadoPagoGateway failed', ['body' => $response->body()]);
-            return ns()->error('Erro ao iniciar pagamento no Mercado Pago: ' . $response->body());
+            return response()->json(['message' => 'Erro ao enviar pagamento.', 'details' => $response->body()], 403);
         }
 
         $data = $response->json();
 
         Log::info('MercadoPagoGateway success', ['data' => $data]);
 
+        // Salvar transação no banco
         MercadoPagoTransaction::create([
-            'order_id' => $order->id,
+            'order_id'       => $order->id,
             'transaction_id' => $data['id'] ?? null,
-            'status' => $data['status'] ?? 'pending',
-            'payment_type' => $data['payment']['type'] ?? 'unknown',
-            'payload' => $data,
+            'status'         => $data['status'] ?? 'pending',
+            'payment_type'   => $data['payment']['type'] ?? 'unknown',
+            'payload'        => $data,
         ]);
 
-        return ns()->success('Pagamento enviado para o Mercado Pago com sucesso.');
+        return response()->json([
+            'message' => 'Pagamento enviado com sucesso para o terminal.',
+            'id' => $data['id'] ?? null,
+        ]);
     }
 }
