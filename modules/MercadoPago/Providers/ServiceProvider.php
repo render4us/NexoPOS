@@ -4,6 +4,7 @@ namespace Modules\MercadoPago\Providers;
 
 use App\Classes\Hook;
 Use App\Providers\AppServiceProvider;
+use Illuminate\Support\Facades\View;
 
 class ServiceProvider extends AppServiceProvider
 {
@@ -27,6 +28,16 @@ class ServiceProvider extends AppServiceProvider
                     ]
                 ]);
                 return $menus;
+            });
+            Hook::addFilter('ns-payment-methods', function ($methods) {
+                $methods['mercadopago'] = [
+                    'label' => 'Mercado Pago',
+                    'description' => 'Pagamento via integração Mercado Pago POS/Point',
+                    'namespace' => \Modules\MercadoPago\Services\MercadoPagoGateway::class,
+                    'icon' => 'la la-credit-card',
+                ];
+
+                return $methods;
             });
         }
 }

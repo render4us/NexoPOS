@@ -1,0 +1,14 @@
+{
+  "name": "MercadoPago",
+  "namespace": "Modules\\MercadoPago\\",
+  "provider": "Modules\\MercadoPago\\Providers\\ServiceProvider",
+  "autoload": {
+    "psr-4": {
+      "Modules\\MercadoPago\\": ""
+    }
+  },
+  "version": "1.0.0",
+  "description": "Integração com Mercado Pago via POS/Point",
+  "author": "Vítor Martins",
+  "enabled": true
+}
