@@ -9,4 +9,10 @@ class MercadoPagoModule extends Module
     {
         parent::__construct(__FILE__);
     }
+
+    public function boot()
+    {
+        $this->loadViewsFrom(__DIR__.'/Resources/views', 'dashboard');
+    }
+
 }
