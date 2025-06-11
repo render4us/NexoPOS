@@ -1,7 +1,9 @@
 {
   "name": "MercadoPago",
   "namespace": "Modules\\MercadoPago\\",
-  "provider": "Modules\\MercadoPago\\Providers\\ServiceProvider",
+  "providers": [
+    "Modules\\MercadoPago\\Providers\\ServiceProvider"
+  ],
   "autoload": {
     "psr-4": {
       "Modules\\MercadoPago\\": ""

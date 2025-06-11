@@ -35,4 +35,9 @@ class ServiceProvider extends AppServiceProvider
                 return $methods;
             });
         }
+
+        public function boot(){
+            $this->loadMigrationsFrom(__DIR__.'/../Migrations');
+
+        }
 }
