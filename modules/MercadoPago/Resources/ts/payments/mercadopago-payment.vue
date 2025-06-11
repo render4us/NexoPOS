@@ -15,7 +15,7 @@
 </template>
 <script>
 import samplePayment from "~/pages/dashboard/pos/payments/sample-payment.vue";
-import { nsHttpClient, nsSnackBar } from "~/bootstrap";
+import { nsHttpClient, nsSnackBar } from "~/bootstrap.js";
 
 export default {
     name: 'mercadopago-payment',

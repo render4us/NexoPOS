@@ -72,25 +72,28 @@ export default {
         
         resolveIfQueued,
 
-        loadPaymentComponent( payment ) {
-            switch( payment.identifier ) {
-                case 'cash-payment':
-                    this.currentPaymentComponent    =   shallowRef( CashPayment );
-                break;
-                case 'creditcard-payment':
-                    this.currentPaymentComponent    =   shallowRef( CreditCardPayment );
-                break;
-                case 'bank-payment':
-                    this.currentPaymentComponent    =   shallowRef( BankPayment );
-                break;
-                case 'account-payment':
-                    this.currentPaymentComponent    =   shallowRef( AccountPayment );
-                break;
-                default: 
-                    this.currentPaymentComponent    =   shallowRef( samplePaymentVue );
-                break;
-            }
-        },
+      async loadPaymentComponent(payment) {
+        switch (payment.identifier) {
+          case 'cash-payment':
+            this.currentPaymentComponent = shallowRef(CashPayment);
+            break;
+          case 'creditcard-payment':
+            this.currentPaymentComponent = shallowRef(CreditCardPayment);
+            break;
+          case 'bank-payment':
+            this.currentPaymentComponent = shallowRef(BankPayment);
+            break;
+          case 'account-payment':
+            this.currentPaymentComponent = shallowRef(AccountPayment);
+            break;
+          case 'mercadopago':
+            this.currentPaymentComponent = shallowRef((await import('~/pages/dashboard/pos/payments/mercadopago-payment.vue')).default);
+            break;
+          default:
+            this.currentPaymentComponent = shallowRef(samplePaymentVue);
+            break;
+        }
+      },
         async selectPayment() {
             try {
                 const result    =   await new Promise( ( resolve, reject ) => {

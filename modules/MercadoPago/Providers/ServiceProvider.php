@@ -34,6 +34,14 @@ class ServiceProvider extends AppServiceProvider
                 $methods['mercadopago'] = \Modules\MercadoPago\Services\Mercadopago::class;
                 return $methods;
             });
+
+            Hook::addFilter('ns-pos-payment-gateways', function ($gateways) {
+                $gateways[] = [
+                    'label' => 'Mercado Pago',
+                    'identifier' => 'mercadopago',
+                ];
+                return $gateways;
+            });
         }
 
         public function boot(){

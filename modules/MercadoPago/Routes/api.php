@@ -2,4 +2,7 @@
 use Illuminate\Support\Facades\Route;
 use Modules\MercadoPago\Http\Controllers\MercadoPagoController;
 
-Route::post('mercadopago/pay', [MercadoPagoController::class, 'pay']);
+Route::prefix('mercadopago')->group(function () {
+    Route::post('/pay', [MercadoPagoController::class, 'pay']);
+    Route::post('/status', [MercadoPagoController::class, 'checkStatus']);
+});

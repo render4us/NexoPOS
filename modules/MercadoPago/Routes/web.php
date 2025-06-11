@@ -14,7 +14,8 @@ Route::get('dashboard/mercadopago', [MercadoPagoController::class, 'config'])->n
 Route::post('dashboard/mercadopago/settings/save', [SettingsController::class, 'save'])->name('mercadopago.settings.save');
 Route::get('dashboard/mercadopago/transactions', [TransactionController::class, 'index'])->name('mercadopago.transactions.index');
 Route::get('dashboard/mercadopago/transactions/{id}/payload', [TransactionController::class, 'payload'])->name('mercadopago.transactions.payload');
-Route::post('dashboard/mercadopago/payment-intent', [PaymentController::class, 'createIntent'])->name('mercadopago.payment.intent');
+Route::post('/mercadopago/payment-intent', [PaymentController::class, 'createIntent'])->name('mercadopago.payment.intent');
+Route::post('/api/mercadopago/pay', [MercadoPagoController::class, 'pay']);
 
 
 Route::get('/mercadopago/test-log', function () {
