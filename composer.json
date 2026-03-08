@@ -25,6 +25,8 @@
         "laravel/telescope": "^5.0",
         "laravel/tinker": "^2.0",
         "mercadopago/dx-php": "^3.5",
+        "nfephp-org/sped-da": "^1.1",
+        "nfephp-org/sped-nfe": "^5.2",
         "nikic/php-parser": "^5.0",
         "opcodesio/log-viewer": "^3.17",
         "phpoffice/phpspreadsheet": "^4.0",
