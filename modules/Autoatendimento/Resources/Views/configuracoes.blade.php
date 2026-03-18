@@ -1,0 +1,275 @@
+@extends('layout.dashboard')
+
+@section('layout.dashboard.body')
+<div>
+    @include( Hook::filter( 'ns-dashboard-header-file', '../common/dashboard-header' ) )
+    <div id="dashboard-content" class="px-4">
+
+        {{-- Cabeçalho da página --}}
+        <div class="page-inner-header mb-4 flex justify-between items-center">
+            <div>
+                <h3 class="text-3xl text-primary font-bold">{{ __('Autoatendimento (Kiosk)') }}</h3>
+                <p class="text-secondary">{{ __('Configure a landing page de autoatendimento') }}</p>
+            </div>
+            <a href="{{ route('kiosk.index') }}" target="_blank"
+               class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
+                      border border-input-edge bg-input-button hover:bg-input-button-hover text-primary transition-colors">
+                <i class="las la-external-link-alt text-base"></i>
+                {{ __('Abrir Kiosk') }}
+            </a>
+        </div>
+
+        {{-- Mensagem de sucesso --}}
+        @if (session('success'))
+            <div class="flex items-center gap-3 border border-success-secondary bg-success-primary rounded-lg mb-6 px-4 py-3">
+                <i class="las la-check-circle text-2xl text-success-tertiary flex-shrink-0"></i>
+                <p class="text-success-tertiary text-sm">{{ session('success') }}</p>
+            </div>
+        @endif
+
+        <form method="POST"
+              action="{{ route('autoatendimento.configuracoes.salvar') }}"
+              enctype="multipart/form-data"
+              class="space-y-6 max-w-3xl pb-10">
+            @csrf
+
+            {{-- ── Controle ─────────────────────────────────────────────── --}}
+            <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
+                <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
+                    <i class="las la-sliders-h text-secondary"></i>
+                    <h2 class="text-sm font-semibold text-primary">{{ __('Controle') }}</h2>
+                </div>
+                <div class="ns-box-body p-4 space-y-4">
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="hidden" name="ativo" value="0">
+                        <input type="checkbox" name="ativo" value="1"
+                               {{ old('ativo', $setting->ativo) ? 'checked' : '' }}
+                               class="w-4 h-4 rounded border-input-edge text-info-tertiary">
+                        <span class="text-sm font-medium text-primary">{{ __('Kiosk ativo (acessível pelo público)') }}</span>
+                    </label>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-1">{{ __('Usuário operador') }}</label>
+                            <select name="operator_user_id"
+                                    class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary">
+                                @foreach($usuarios as $u)
+                                    <option value="{{ $u->id }}"
+                                            {{ old('operator_user_id', $setting->operator_user_id) == $u->id ? 'selected' : '' }}>
+                                        {{ $u->username }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-secondary mt-1">Os pedidos do kiosk serão criados com este usuário.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-1">
+                                {{ __('Tempo de reset (segundos)') }}
+                            </label>
+                            <input type="number" name="reset_timeout" min="5" max="120"
+                                   value="{{ old('reset_timeout', $setting->reset_timeout) }}"
+                                   class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary">
+                            <p class="text-xs text-secondary mt-1">Tempo após pagamento aprovado para voltar à tela inicial.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {{-- ── Aparência ────────────────────────────────────────────── --}}
+            <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
+                <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
+                    <i class="las la-palette text-secondary"></i>
+                    <h2 class="text-sm font-semibold text-primary">{{ __('Aparência') }}</h2>
+                </div>
+                <div class="ns-box-body p-4 space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-1">{{ __('Título de boas-vindas') }}</label>
+                            <input type="text" name="titulo"
+                                   value="{{ old('titulo', $setting->titulo) }}"
+                                   placeholder="Bem-vindo!"
+                                   class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-1">{{ __('Subtítulo') }}</label>
+                            <input type="text" name="subtitulo"
+                                   value="{{ old('subtitulo', $setting->subtitulo) }}"
+                                   placeholder="Como prefere seu pedido?"
+                                   class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-1">{{ __('Cor primária') }}</label>
+                            <div class="flex items-center gap-3">
+                                <input type="color" name="cor_primaria"
+                                       value="{{ old('cor_primaria', $setting->cor_primaria) }}"
+                                       class="h-10 w-16 rounded-lg border border-input-edge cursor-pointer">
+                                <input type="text"
+                                       value="{{ old('cor_primaria', $setting->cor_primaria) }}"
+                                       class="flex-1 border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none"
+                                       readonly>
+                            </div>
+                            <p class="text-xs text-secondary mt-1">Usada nos botões, destaques e cabeçalhos do kiosk.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+                        {{-- Logo --}}
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-primary">
+                                {{ __('Logotipo') }}
+                                <span class="text-xs text-secondary ml-1">(PNG, JPG, SVG, WebP — máx. 2 MB)</span>
+                            </label>
+
+                            {{-- Preview atual --}}
+                            @if($setting->logo_url)
+                            <div class="flex items-center gap-3 p-2 bg-box-elevation-background border border-box-edge rounded-lg">
+                                <img src="{{ $setting->logo_url }}" alt="Logo atual"
+                                     class="h-12 w-auto object-contain rounded">
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-medium text-primary truncate">Logo atual</p>
+                                    <p class="text-xs text-secondary truncate">{{ $setting->logo_url }}</p>
+                                </div>
+                            </div>
+                            @endif
+
+                            {{-- Upload --}}
+                            <div>
+                                <label class="block text-xs font-medium text-secondary mb-1">{{ __('Enviar novo arquivo') }}</label>
+                                <input type="file" name="logo_arquivo" accept=".png,.jpg,.jpeg,.svg,.webp"
+                                       class="block w-full text-sm text-secondary
+                                              file:mr-3 file:py-2 file:px-4 file:rounded-lg
+                                              file:border file:border-input-edge file:bg-input-button
+                                              file:text-primary file:text-sm file:cursor-pointer
+                                              hover:file:bg-input-button-hover">
+                            </div>
+
+                            {{-- URL manual --}}
+                            <div>
+                                <label class="block text-xs font-medium text-secondary mb-1">{{ __('Ou informe uma URL externa') }}</label>
+                                <input type="text" name="logo_url"
+                                       value="{{ old('logo_url') }}"
+                                       placeholder="https://..."
+                                       class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary">
+                                <p class="text-xs text-secondary mt-1">O upload tem prioridade sobre a URL.</p>
+                            </div>
+                        </div>
+
+                        {{-- Vídeo de fundo --}}
+                        <div class="space-y-2">
+                            <label class="block text-sm font-medium text-primary">
+                                {{ __('Vídeo de fundo (tela splash)') }}
+                                <span class="text-xs text-secondary ml-1">(MP4, WebM — máx. 50 MB)</span>
+                            </label>
+
+                            {{-- Preview atual --}}
+                            @if($setting->video_url)
+                            <div class="flex items-center gap-3 p-2 bg-box-elevation-background border border-box-edge rounded-lg">
+                                <div class="w-12 h-12 rounded bg-gray-200 flex items-center justify-center flex-shrink-0">
+                                    <i class="las la-film text-2xl text-secondary"></i>
+                                </div>
+                                <div class="flex-1 min-w-0">
+                                    <p class="text-xs font-medium text-primary truncate">Vídeo atual</p>
+                                    <p class="text-xs text-secondary truncate">{{ $setting->video_url }}</p>
+                                </div>
+                            </div>
+                            @endif
+
+                            {{-- Upload --}}
+                            <div>
+                                <label class="block text-xs font-medium text-secondary mb-1">{{ __('Enviar novo arquivo') }}</label>
+                                <input type="file" name="video_arquivo" accept=".mp4,.webm"
+                                       class="block w-full text-sm text-secondary
+                                              file:mr-3 file:py-2 file:px-4 file:rounded-lg
+                                              file:border file:border-input-edge file:bg-input-button
+                                              file:text-primary file:text-sm file:cursor-pointer
+                                              hover:file:bg-input-button-hover">
+                            </div>
+
+                            {{-- URL manual --}}
+                            <div>
+                                <label class="block text-xs font-medium text-secondary mb-1">{{ __('Ou informe uma URL externa') }}</label>
+                                <input type="text" name="video_url"
+                                       value="{{ old('video_url') }}"
+                                       placeholder="https://..."
+                                       class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary">
+                                <p class="text-xs text-secondary mt-1">Deixe ambos em branco para usar o gradiente da cor primária.</p>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+
+            {{-- ── Preview ──────────────────────────────────────────────── --}}
+            <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
+                <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
+                    <i class="las la-eye text-secondary"></i>
+                    <h2 class="text-sm font-semibold text-primary">{{ __('Pré-visualização') }}</h2>
+                </div>
+                <div class="ns-box-body p-4">
+                    <div class="rounded-xl overflow-hidden shadow-inner"
+                         style="background: {{ $setting->cor_primaria }}; aspect-ratio: 9/5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;">
+                        @if($setting->logo_url)
+                            <img src="{{ $setting->logo_url }}" alt="Logo" class="h-12 object-contain">
+                        @endif
+                        <div class="text-center text-white">
+                            <p class="font-black text-2xl">{{ $setting->titulo }}</p>
+                            <p class="text-white/70">{{ $setting->subtitulo }}</p>
+                        </div>
+                        <div class="flex gap-3">
+                            <div class="bg-white rounded-xl px-5 py-3 text-center">
+                                <p class="font-bold text-sm" style="color: {{ $setting->cor_primaria }};">🍽️ Comer Aqui</p>
+                            </div>
+                            <div class="bg-white rounded-xl px-5 py-3 text-center">
+                                <p class="font-bold text-sm" style="color: {{ $setting->cor_primaria }};">🥡 Para Levar</p>
+                            </div>
+                        </div>
+                    </div>
+                    <p class="text-xs text-secondary mt-2 text-center">Salve as configurações para atualizar o preview.</p>
+                </div>
+            </div>
+
+            {{-- ── Informações --}}
+            <div class="flex items-start gap-3 border border-info-secondary bg-info-primary rounded-lg px-4 py-3">
+                <i class="las la-info-circle text-xl text-info-tertiary flex-shrink-0 mt-0.5"></i>
+                <div class="text-sm text-info-tertiary">
+                    <p class="font-semibold mb-1">Pré-requisitos para o kiosk funcionar:</p>
+                    <ul class="list-disc list-inside space-y-0.5">
+                        <li>Módulo <strong>Mercado Pago</strong> configurado com Access Token e Terminal ID.</li>
+                        <li>Produtos cadastrados no NexoPOS com status <strong>Disponível</strong> e preço de venda.</li>
+                        <li>Para emissão automática de NF-e, o módulo <strong>Nota Fiscal</strong> deve estar ativo.</li>
+                    </ul>
+                </div>
+            </div>
+
+            {{-- ── Submit ────────────────────────────────────────────────── --}}
+            <div class="flex justify-end">
+                <button type="submit"
+                        class="inline-flex items-center gap-2 px-6 py-3 bg-info-tertiary text-white rounded-lg
+                               font-semibold text-sm hover:opacity-90 focus:outline-none focus:ring-2
+                               focus:ring-info-secondary transition-opacity">
+                    <i class="las la-save text-base"></i>
+                    {{ __('Salvar Configurações') }}
+                </button>
+            </div>
+        </form>
+
+    </div>
+</div>
+@endsection
+
+@section('layout.dashboard.header')
+<script>
+    // Sync color input text field with color picker
+    document.addEventListener('DOMContentLoaded', function () {
+        const colorInput  = document.querySelector('input[type="color"][name="cor_primaria"]');
+        const textDisplay = colorInput?.nextElementSibling;
+        if (colorInput && textDisplay) {
+            colorInput.addEventListener('input', function () {
+                textDisplay.value = this.value;
+            });
+        }
+    });
+</script>
+@endsection

@@ -1,0 +1,44 @@
+<?php
+
+namespace Modules\Autoatendimento\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class KioskSetting extends Model
+{
+    protected $table = 'kiosk_settings';
+
+    protected $fillable = [
+        'ativo',
+        'titulo',
+        'subtitulo',
+        'cor_primaria',
+        'video_url',
+        'logo_url',
+        'operator_user_id',
+        'reset_timeout',
+    ];
+
+    protected $casts = [
+        'ativo'            => 'boolean',
+        'operator_user_id' => 'integer',
+        'reset_timeout'    => 'integer',
+    ];
+
+    /**
+     * Retorna a instância de configuração (cria com defaults se não existir).
+     */
+    public static function instance(): static
+    {
+        return static::firstOrCreate([], [
+            'ativo'            => true,
+            'titulo'           => 'Bem-vindo!',
+            'subtitulo'        => 'Como prefere seu pedido?',
+            'cor_primaria'     => '#583f32',
+            'video_url'        => '',
+            'logo_url'         => '',
+            'operator_user_id' => 1,
+            'reset_timeout'    => 10,
+        ]);
+    }
+}

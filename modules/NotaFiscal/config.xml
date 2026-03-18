@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<module>
+    <namespace>NotaFiscal</namespace>
+    <version>1.0.0</version>
+    <author>Vítor Martins</author>
+    <name>Nota Fiscal (NFC-e)</name>
+    <description>Módulo de emissão de Nota Fiscal do Consumidor Eletrônica (NFC-e / modelo 65) integrado ao NexoPOS via NFePHP</description>
+</module>

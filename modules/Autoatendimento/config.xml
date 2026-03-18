@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<module>
+    <namespace>Autoatendimento</namespace>
+    <version>1.0.0</version>
+    <author>Vítor Martins</author>
+    <name>Autoatendimento (Kiosk)</name>
+    <description>Landing page de autoatendimento estilo kiosk: cardápio com produtos do NexoPOS, carrinho, WhatsApp, Nota Fiscal e pagamento via Mercado Pago.</description>
+</module>
