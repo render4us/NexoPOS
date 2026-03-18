@@ -230,6 +230,65 @@
                 </div>
             </div>
 
+            {{-- ── Impressora Térmica ────────────────────────────────────── --}}
+            <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
+                <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
+                    <i class="las la-print text-secondary"></i>
+                    <h2 class="text-sm font-semibold text-primary">{{ __('Impressora Térmica (Rede)') }}</h2>
+                </div>
+                <div class="ns-box-body p-4 space-y-4">
+
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="hidden" name="printer_enabled" value="0">
+                        <input type="checkbox" name="printer_enabled" value="1"
+                               {{ old('printer_enabled', $setting->printer_enabled) ? 'checked' : '' }}
+                               class="w-4 h-4 rounded border-input-edge text-info-tertiary">
+                        <span class="text-sm font-medium text-primary">{{ __('Imprimir cupom automaticamente após pagamento aprovado') }}</span>
+                    </label>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-medium text-primary mb-1">{{ __('IP da Impressora') }}</label>
+                            <input type="text" name="printer_ip"
+                                   value="{{ old('printer_ip', $setting->printer_ip) }}"
+                                   placeholder="192.168.1.100"
+                                   class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary font-mono">
+                            <p class="text-xs text-secondary mt-1">Endereço IP da impressora na rede local.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-1">{{ __('Porta TCP') }}</label>
+                            <input type="number" name="printer_port" min="1" max="65535"
+                                   value="{{ old('printer_port', $setting->printer_port ?: 9100) }}"
+                                   class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary font-mono">
+                            <p class="text-xs text-secondary mt-1">Padrão: 9100 (RAW printing).</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-1">{{ __('Colunas do papel') }}</label>
+                            <select name="printer_columns"
+                                    class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary">
+                                @foreach([32 => '32 (57mm)', 40 => '40 (76mm)', 48 => '48 (80mm)'] as $val => $label)
+                                    <option value="{{ $val }}"
+                                            {{ old('printer_columns', $setting->printer_columns ?: 48) == $val ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <p class="text-xs text-secondary mt-1">Largura do papel da sua impressora.</p>
+                        </div>
+                    </div>
+
+                    {{-- Dica de compatibilidade --}}
+                    <div class="flex items-start gap-2 text-xs text-secondary">
+                        <i class="las la-info-circle mt-0.5 flex-shrink-0"></i>
+                        <span>
+                            Compatível com impressoras térmicas ESC/POS (Epson, Bematech, Elgin, Daruma, etc.)
+                            conectadas à rede local. Certifique-se de que o servidor PHP consegue acessar o IP da impressora
+                            na porta configurada.
+                        </span>
+                    </div>
+                </div>
+            </div>
+
             {{-- ── Informações --}}
             <div class="flex items-start gap-3 border border-info-secondary bg-info-primary rounded-lg px-4 py-3">
                 <i class="las la-info-circle text-xl text-info-tertiary flex-shrink-0 mt-0.5"></i>

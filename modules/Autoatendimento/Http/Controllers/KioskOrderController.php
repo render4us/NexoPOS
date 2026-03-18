@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 use Modules\Autoatendimento\Models\KioskSetting;
+use Modules\Autoatendimento\Services\EscPosPrinterService;
 use Modules\MercadoPago\Models\MercadoPagoSetting;
 use Modules\MercadoPago\Models\MercadoPagoTransaction;
 
@@ -207,6 +208,27 @@ class KioskOrderController extends Controller
                             'identifier' => 'mercadopago',
                             'value'      => $order->total,
                         ], $order);
+
+                        // ── Imprime cupom na impressora de rede ──────────────
+                        try {
+                            $items = $order->products->map(fn ($p) => [
+                                'name'       => $p->name,
+                                'quantity'   => $p->quantity,
+                                'unit_price' => $p->unit_price,
+                            ])->toArray();
+
+                            app(EscPosPrinterService::class)->printReceipt(
+                                items:       $items,
+                                total:       (float) $order->total,
+                                mode:        $transaction->payload['description'] ?? 'takeaway',
+                                phone:       null,
+                                paymentType: $transaction->payment_type ?? 'credit_card',
+                                orderId:     $order->id,
+                                setting:     $setting
+                            );
+                        } catch (\Throwable $e) {
+                            Log::warning('[Kiosk] Falha ao imprimir cupom', ['error' => $e->getMessage()]);
+                        }
                     }
                 }
 

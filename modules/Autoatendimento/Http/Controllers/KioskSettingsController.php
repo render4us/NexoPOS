@@ -36,6 +36,10 @@ class KioskSettingsController extends Controller
             'video_arquivo'    => 'nullable|file|mimes:mp4,webm|max:51200',
             'operator_user_id' => 'required|integer|exists:nexopos_users,id',
             'reset_timeout'    => 'required|integer|min:5|max:120',
+            'printer_enabled'  => 'boolean',
+            'printer_ip'       => 'nullable|ip',
+            'printer_port'     => 'nullable|integer|min:1|max:65535',
+            'printer_columns'  => 'nullable|integer|in:32,40,48',
         ]);
 
         $setting = KioskSetting::instance();
@@ -72,6 +76,10 @@ class KioskSettingsController extends Controller
             'video_url'        => $videoUrl,
             'operator_user_id' => $request->input('operator_user_id'),
             'reset_timeout'    => $request->input('reset_timeout'),
+            'printer_enabled'  => $request->boolean('printer_enabled'),
+            'printer_ip'       => $request->input('printer_ip'),
+            'printer_port'     => $request->input('printer_port', 9100),
+            'printer_columns'  => $request->input('printer_columns', 48),
         ]);
 
         return redirect()->route('autoatendimento.configuracoes')

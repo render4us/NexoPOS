@@ -17,12 +17,19 @@ class KioskSetting extends Model
         'logo_url',
         'operator_user_id',
         'reset_timeout',
+        'printer_enabled',
+        'printer_ip',
+        'printer_port',
+        'printer_columns',
     ];
 
     protected $casts = [
         'ativo'            => 'boolean',
         'operator_user_id' => 'integer',
         'reset_timeout'    => 'integer',
+        'printer_enabled'  => 'boolean',
+        'printer_port'     => 'integer',
+        'printer_columns'  => 'integer',
     ];
 
     /**
@@ -39,6 +46,10 @@ class KioskSetting extends Model
             'logo_url'         => '',
             'operator_user_id' => 1,
             'reset_timeout'    => 10,
+            'printer_enabled'  => false,
+            'printer_ip'       => '',
+            'printer_port'     => 9100,
+            'printer_columns'  => 48,
         ]);
     }
 }
