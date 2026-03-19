@@ -42,7 +42,8 @@ public/css/*.css
 public/js/*.map
 public/js/*.txt
 public/css/*.map
-public/lang
+public/lang/*
+!public/lang/*.json
 public/modules-lang/*
 !public/modules-lang/index.html
 public/mapping.json
