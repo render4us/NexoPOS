@@ -311,7 +311,7 @@
                     <p class="font-semibold mb-1">Pré-requisitos para o kiosk funcionar:</p>
                     <ul class="list-disc list-inside space-y-0.5">
                         <li>Módulo <strong>Mercado Pago</strong> configurado com Access Token e Terminal ID.</li>
-                        <li>Produtos cadastrados no NexoPOS com status <strong>Disponível</strong> e preço de venda.</li>
+                        <li>Produtos cadastrados no SnowSYS com status <strong>Disponível</strong> e preço de venda.</li>
                         <li>Para emissão automática de NF-e, o módulo <strong>Nota Fiscal</strong> deve estar ativo.</li>
                     </ul>
                 </div>

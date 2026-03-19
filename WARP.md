@@ -1,4 +1,4 @@
-# NexoPOS — Regras do Projeto
+# SnowSYS — Regras do Projeto
 
 ## Visão Geral
 Sistema de ponto de venda (PDV) open-source construído em **Laravel 11**. Gerencia produtos, categorias, pedidos, clientes, fornecedores, caixas, relatórios e muito mais. O sistema é o **backend central** para o projeto de totem de auto-atendimento **kiosk-app** (sorveteria Snow Shake).
@@ -36,7 +36,7 @@ routes/
     users.php
     ...
   web.php / nexopos.php          # Rotas web do painel
-modules/                         # Módulos de extensão do NexoPOS
+modules/                         # Módulos de extensão do SnowSYS
 resources/ts/                    # Código Vue.js do painel interno
 planning/                        # Documentação de planejamento e integrações
 ```
@@ -101,7 +101,7 @@ Todas as rotas abaixo exigem `Authorization: Bearer {token}` exceto onde indicad
 
 ## CORS (Integração com kiosk-app)
 
-Para que o kiosk-app (rodando em `http://localhost:5173` em dev) consuma a API do NexoPOS, configurar em `config/cors.php`:
+Para que o kiosk-app (rodando em `http://localhost:5173` em dev) consuma a API do SnowSYS, configurar em `config/cors.php`:
 - `allowed_origins`: incluir a URL do kiosk-app
 - `allowed_headers`: `['*']`
 - `supports_credentials`: `false` (kiosk usa token, não cookie)

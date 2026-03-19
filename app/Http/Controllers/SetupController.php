@@ -1,7 +1,7 @@
 <?php
 
 /**
- * NexoPOS Controller
+ * SnowSYS Controller
  *
  * @since  1.0
  **/
@@ -24,7 +24,7 @@ class SetupController extends Controller
     public function welcome( Request $request )
     {
         return view( 'pages.setup.welcome', [
-            'title' => __( 'Welcome &mdash; NexoPOS' ),
+            'title' => __( 'Welcome &mdash; SnowSYS' ),
             'languages' => config( 'nexopos.languages' ),
             'lang' => $request->query( 'lang' ) ?: 'en',
         ] );

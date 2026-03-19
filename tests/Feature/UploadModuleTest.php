@@ -33,7 +33,7 @@ class UploadModuleTest extends TestCase
         $config = [
             'namespace' => ucwords( Str::camel( $name ) ),
             'name' => $name,
-            'author' => 'NexoPOS',
+            'author' => 'SnowSYS',
             'description' => 'Generated from a test',
             'version' => '1.0',
         ];

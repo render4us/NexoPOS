@@ -15,7 +15,7 @@ use NFePHP\NFe\Tools;
 
 class NfceService
 {
-    // ── Mapeamento de formas de pagamento NexoPOS → tPag NFC-e ────────────────
+    // ── Mapeamento de formas de pagamento SnowSYS → tPag NFC-e ────────────────
 
     private const PAYMENT_MAP = [
         OrderPayment::PAYMENT_CASH    => '01', // Dinheiro
@@ -344,7 +344,7 @@ class NfceService
 
         // ── infAdic ───────────────────────────────────────────────────────────
         $std           = new \stdClass();
-        $std->infCpl   = 'Pedido NexoPOS: ' . $order->code;
+        $std->infCpl   = 'Pedido SnowSYS: ' . $order->code;
         $std->infAdFisco = null;
         $make->taginfAdic($std);
 

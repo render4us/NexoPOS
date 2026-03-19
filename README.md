@@ -1,10 +1,10 @@
 [![Latest Stable Version](https://poser.pugx.org/blair2004/nexopos/v)](//packagist.org/packages/blair2004/nexopos) [![Total Downloads](https://poser.pugx.org/blair2004/nexopos/downloads)](//packagist.org/packages/blair2004/nexopos) [![Latest Unstable Version](https://poser.pugx.org/blair2004/nexopos/v/unstable)](//packagist.org/packages/blair2004/nexopos) [![License](https://poser.pugx.org/blair2004/nexopos/license)](//packagist.org/packages/blair2004/nexopos)
 
 <p align="center">
-  <img src="https://user-images.githubusercontent.com/5265663/162700085-40ed00ca-9154-42cb-850a-ccf1c2db2d5d.png" alt="NexoPOS"/>
+  <img src="https://user-images.githubusercontent.com/5265663/162700085-40ed00ca-9154-42cb-850a-ccf1c2db2d5d.png" alt="SnowSYS"/>
 </p>
 
-NexoPOS 4 is a free point-of-sale system built using Laravel, TailwindCSS, Vue, and other open-source resources. This POS System focuses on utilities and functionalities to offer for most businesses all the tools they need to manage better their store. NexoPOS includes a responsive and beautiful dashboard that ease the interaction either on a smartphone, tablet, or desktops.
+SnowSYS 4 is a free point-of-sale system built using Laravel, TailwindCSS, Vue, and other open-source resources. This POS System focuses on utilities and functionalities to offer for most businesses all the tools they need to manage better their store. SnowSYS includes a responsive and beautiful dashboard that ease the interaction either on a smartphone, tablet, or desktops.
 
 Read Review On:
 [![Laravel News](https://user-images.githubusercontent.com/5265663/186377311-c42ddd2c-bc84-465c-a3b6-94e6df8d68bc.jpg)](https://laravel-news.com/nexopos-point-of-sale-for-laravel?utm_source=github.com&utm_medium=readme&utm_campagin=nexopos)
@@ -16,14 +16,14 @@ Read Review On:
 - Username : demouser
 - Password : 123456
 
-[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/blair2004/NexoPOS/tree/v5.0.x&refcode=ebdb80cb0ec7)
+[![Deploy to DO](https://www.deploytodo.com/do-btn-blue.svg)](https://cloud.digitalocean.com/apps/new?repo=https://github.com/blair2004/SnowSYS/tree/v5.0.x&refcode=ebdb80cb0ec7)
 
 ## Documentation
-All the documentation for NexoPOS can be found on [My NexoPOS](https://my.nexopos.com/en/documentation). That includes : 
+All the documentation for SnowSYS can be found on [My SnowSYS](https://my.nexopos.com/en/documentation). That includes : 
 
 - [Configuring the environment](https://my.nexopos.com/en/documentation/getting-started/configuring-the-environment)
-- [Downloading NexoPOS](https://my.nexopos.com/en/documentation/getting-started/download-and-install)
-- [Installing NexoPOS](https://my.nexopos.com/en/documentation/getting-started/installation-wizard)
+- [Downloading SnowSYS](https://my.nexopos.com/en/documentation/getting-started/download-and-install)
+- [Installing SnowSYS](https://my.nexopos.com/en/documentation/getting-started/installation-wizard)
 - [Rest API](https://docs.api.nexopos.com)
 
 And for developers, there are more technical tutorials that cover:
@@ -38,28 +38,28 @@ We've also created a video tutorial that will help you perform those easily.
 ](https://www.youtube.com/watch?v=V80-hOJCywY)
 
 # Get More Using Modules
-NexoPOS available on [CodeCanyon](https://codecanyon.net/item/nexopos-4x-pos-crm-inventory-manager/31188619) gives access to the premium modules marketplace. While purchasing on CodeCanyon, you get : 
+SnowSYS available on [CodeCanyon](https://codecanyon.net/item/nexopos-4x-pos-crm-inventory-manager/31188619) gives access to the premium modules marketplace. While purchasing on CodeCanyon, you get : 
 
-- $40 In credit to [My NexoPOS](https://my.nexopos.com/en/marketplace) balance.
-- Access to NexoPOS marketplace
+- $40 In credit to [My SnowSYS](https://my.nexopos.com/en/marketplace) balance.
+- Access to SnowSYS marketplace
 - Premium Support & Installation Service
 - You're eligible for customization
 
 ## Changelog & Feature Announcement
-We frequently discuss the future of the app (while waiting discussions are allowed). You can join the WhatsApp [group where tips](https://chat.whatsapp.com/KHWgNmfcfJy7SwJiRQTmG8) are shared on NexoPOS.
+We frequently discuss the future of the app (while waiting discussions are allowed). You can join the WhatsApp [group where tips](https://chat.whatsapp.com/KHWgNmfcfJy7SwJiRQTmG8) are shared on SnowSYS.
 
 
 ## Support Terms
 
-1 - The support on NexoPOS only applies to the information provided by the users while creating an issue. This means we won't either do the installation on your server or check an issue on your server. You're therefore invited not to post your server information while creating an issue. We'll use your explanations to reproduce your issue and therefore to solve it.
+1 - The support on SnowSYS only applies to the information provided by the users while creating an issue. This means we won't either do the installation on your server or check an issue on your server. You're therefore invited not to post your server information while creating an issue. We'll use your explanations to reproduce your issue and therefore to solve it.
 
-2 - If you would like to have a dedicated support. Consider registering as a member to [My NexoPOS platform](https://my.nexopos.com/en/account/checkout/premium).
+2 - If you would like to have a dedicated support. Consider registering as a member to [My SnowSYS platform](https://my.nexopos.com/en/account/checkout/premium).
 
 ## Troubleshooting
 Here we list the known issues and the way around them. Not everyone is likely to face these issues as it depends on the used environment.
 
 - CSRF error After Installation
-Chances are when you make your installation, you'll have your website URL changed. Unfortunately, if the domain has to change, it must be clearly described on the .env file. We've written a guide that explains how to solve the [CSRF issue on NexoPOS](https://my.nexopos.com/en/documentation/troubleshooting/how-to-fix-csrf-token-mismatch-on-nexopos-4-x).
+Chances are when you make your installation, you'll have your website URL changed. Unfortunately, if the domain has to change, it must be clearly described on the .env file. We've written a guide that explains how to solve the [CSRF issue on SnowSYS](https://my.nexopos.com/en/documentation/troubleshooting/how-to-fix-csrf-token-mismatch-on-nexopos-4-x).
 
 - Error After Database Details (using `php artisan serve`)
 If you're serving the project using `php artisan serve`, after setting up the database credentials and having them validated, you might stop on an infinite
@@ -97,11 +97,11 @@ npm run prod
 ## Star History
 Thank you for all your support over the years :).
 
-[![Star History Chart](https://api.star-history.com/svg?repos=blair2004/NexoPOS&type=Date)](https://star-history.com/#blair2004/NexoPOS&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=blair2004/SnowSYS&type=Date)](https://star-history.com/#blair2004/SnowSYS&Date)
 
 
 ## Screenshots
-The branch 4.7.x introduces the "Dark Mode" which will make working continuously with NexoPOS easier without hurting sight.
+The branch 4.7.x introduces the "Dark Mode" which will make working continuously with SnowSYS easier without hurting sight.
 
 ### Media Component
 The media components help upload images and manage them. This comes with a field that will ease assigning images to products.
@@ -120,5 +120,5 @@ The resources that are sold are the products. The product UI has been simplified
 ![image](https://user-images.githubusercontent.com/5265663/159092753-845b930c-0b4f-4b3d-a42e-8658f74e7499.png)
 
 ### Settings Components
-Configure how NexoPOS works. From the settings, you can configure various sections of your application including the currency, the POS features, the orders, and much more.
+Configure how SnowSYS works. From the settings, you can configure various sections of your application including the currency, the POS features, the orders, and much more.
 ![image](https://user-images.githubusercontent.com/5265663/159092979-267841bc-531d-4a27-b35f-902866fa742a.png)

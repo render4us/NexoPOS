@@ -1,7 +1,7 @@
 <?php
 
 /**
- * NexoPOS Controller
+ * SnowSYS Controller
  *
  * @since  1.0
  **/
@@ -172,7 +172,7 @@ class OrdersController extends DashboardController
         return View::make( 'pages.dashboard.orders.pos', [
             'title' => sprintf(
                 __( 'POS' ),
-                ns()->option->get( 'ns_store_name', 'NexoPOS' )
+                ns()->option->get( 'ns_store_name', 'SnowSYS' )
             ),
             'orderTypes' => collect( $this->ordersService->getTypeOptions() )
                 ->filter( function ( $type, $label ) {

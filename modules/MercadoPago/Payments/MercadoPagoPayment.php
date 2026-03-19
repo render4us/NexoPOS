@@ -24,7 +24,7 @@ class MercadoPagoPayment implements PaymentMethodInterface
         $response = Http::withToken($token)
             ->post("https://api.mercadopago.com/point/integration-api/devices/{$device}/orders", [
                 'external_reference' => $payload['transaction_id'],
-                'title'              => 'Pagamento NexoPOS',
+                'title'              => 'Pagamento SnowSYS',
                 'notification_url'   => url('/api/mercadopago/callback'),
                 'total_amount'       => $payload['amount'],
                 'items'              => $payload['items'],

@@ -32,7 +32,7 @@ class PaymentController extends Controller
 
         $payload = [
             'amount' => $request->amount,
-            'description' => 'Pagamento NexoPOS Pedido #' . $request->order_id,
+            'description' => 'Pagamento SnowSYS Pedido #' . $request->order_id,
             'payment' => [
                 'installments' => 1,
                 'type' => $request->payment_type,

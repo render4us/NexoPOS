@@ -11,7 +11,7 @@ use Illuminate\Support\Facades\Schema;
  *
  * Campos existentes aproveitados:
  *   - barcode: usado como cEAN / cEANTrib (se for GTIN válido)
- *   - tax_value: percentual de imposto já calculado pelo NexoPOS
+ *   - tax_value: percentual de imposto já calculado pelo SnowSYS
  *   - name:  xProd
  *
  * Campos adicionados:

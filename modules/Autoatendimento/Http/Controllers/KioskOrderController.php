@@ -18,7 +18,7 @@ use Modules\MercadoPago\Models\MercadoPagoTransaction;
 class KioskOrderController extends Controller
 {
     /**
-     * Cria o pedido no NexoPOS e envia o valor para a maquininha via Mercado Pago.
+     * Cria o pedido no SnowSYS e envia o valor para a maquininha via Mercado Pago.
      */
     public function criar(Request $request)
     {
@@ -49,7 +49,7 @@ class KioskOrderController extends Controller
         $total = collect($request->items)
             ->sum(fn ($i) => $i['quantity'] * $i['unit_price']);
 
-        // ── 1. Cria o pedido no NexoPOS ────────────────────────────────────
+        // ── 1. Cria o pedido no SnowSYS ────────────────────────────────────
         $notes = ['Pedido via Kiosk'];
         if ($request->phone) {
             $notes[] = 'WhatsApp: ' . $request->phone;
@@ -65,7 +65,7 @@ class KioskOrderController extends Controller
         // Autentica como o operador configurado para o serviço de pedidos
         Auth::onceUsingId($setting->operator_user_id ?? 1);
 
-        // Usa o cliente padrão definido nas configurações do NexoPOS
+        // Usa o cliente padrão definido nas configurações do SnowSYS
         $defaultCustomerId = (int) ns()->option->get('ns_customers_default', 0);
 
         if ($defaultCustomerId === 0) {
@@ -176,7 +176,7 @@ class KioskOrderController extends Controller
 
     /**
      * Consulta o status do pagamento (polling pelo frontend).
-     * Quando aprovado, registra o pagamento no pedido NexoPOS.
+     * Quando aprovado, registra o pagamento no pedido SnowSYS.
      */
     public function status(string $transactionId)
     {
@@ -217,7 +217,7 @@ class KioskOrderController extends Controller
                 MercadoPagoTransaction::where('transaction_id', $transactionId)
                     ->update(['status' => $mpStatus, 'payload' => $res]);
 
-                // Registra pagamento no pedido NexoPOS
+                // Registra pagamento no pedido SnowSYS
                 $transaction = MercadoPagoTransaction::where('transaction_id', $transactionId)->first();
 
                 if ($transaction && $transaction->order_id) {

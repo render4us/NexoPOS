@@ -1,7 +1,7 @@
 <?php
 
 /**
- * NexoPOS Controller
+ * SnowSYS Controller
  *
  * @since  1.0
  **/
@@ -111,7 +111,7 @@ class ModulesController extends DashboardController
     {
         return View::make( 'pages.dashboard.modules.upload', [
             'title' => __( 'Upload A Module' ),
-            'description' => __( 'Extends NexoPOS features with some new modules.' ),
+            'description' => __( 'Extends SnowSYS features with some new modules.' ),
         ] );
     }
 

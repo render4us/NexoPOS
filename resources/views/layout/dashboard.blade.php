@@ -54,7 +54,7 @@ if ( Auth::check() ) {
         window.nsExtraComponents     =   new Object;
 
         /**
-         * describe a global NexoPOS object
+         * describe a global SnowSYS object
          * @param {object} ns
          */
         window.ns   =   { nsExtraComponents };
@@ -81,7 +81,7 @@ if ( Auth::check() ) {
          */
         window.ns.language      =   '{{ app()->getLocale() }}';
         window.ns.langFiles     =   <?php echo json_encode( Hook::filter( 'ns.langFiles', [
-            'NexoPOS'   =>  asset( "/lang/" . app()->getLocale() . ".json" ),
+            'SnowSYS'   =>  asset( "/lang/" . app()->getLocale() . ".json" ),
         ]));?>
 
         /**
@@ -156,7 +156,7 @@ if ( Auth::check() ) {
                     @endif
                 </div>
                 <div class="p-2 text-xs flex justify-end text-gray-500">
-                    {!! Hook::filter( 'ns-footer-signature', sprintf( __( 'You\'re using <a tager="_blank" href="%s" class="hover:text-blue-400 mx-1 inline-block">NexoPOS %s</a>' ), 'https://my.nexopos.com/en', config( 'nexopos.version' ) ) ) !!}
+                    {!! Hook::filter( 'ns-footer-signature', sprintf( __( 'You\'re using <a tager="_blank" href="%s" class="hover:text-blue-400 mx-1 inline-block">SnowSYS %s</a>' ), 'https://my.nexopos.com/en', config( 'nexopos.version' ) ) ) !!}
                 </div>
             </div>
         </div>

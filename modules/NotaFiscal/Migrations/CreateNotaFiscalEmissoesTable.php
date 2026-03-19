@@ -19,7 +19,7 @@ class CreateNotaFiscalEmissoesTable extends Migration
 
             // ── Vínculo com o pedido ──────────────────────────────────────────
             $table->unsignedBigInteger('order_id')->index()
-                ->comment('ID do pedido NexoPOS (nexopos_orders.id)');
+                ->comment('ID do pedido SnowSYS (nexopos_orders.id)');
 
             // ── Dados da nota ─────────────────────────────────────────────────
             $table->integer('n_nf')->nullable()

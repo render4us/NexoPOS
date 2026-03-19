@@ -28,7 +28,7 @@ class GenerateModuleCommand extends Command
      *
      * @var string
      */
-    protected $description = 'Create a new NexoPOS module';
+    protected $description = 'Create a new SnowSYS module';
 
     /**
      * Create a new command instance.
@@ -51,7 +51,7 @@ class GenerateModuleCommand extends Command
         if ( Helper::installed() ) {
             $this->askInformations();
         } else {
-            $this->error( 'NexoPOS is not yet installed.' );
+            $this->error( 'SnowSYS is not yet installed.' );
         }
     }
 

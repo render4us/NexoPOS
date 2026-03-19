@@ -54,7 +54,7 @@ if ( Auth::check() ) {
         window.nsExtraComponents     =   new Object;
 
         /**
-         * describe a global NexoPOS object
+         * describe a global SnowSYS object
          * @param {object} ns
          */
         window.ns   =   { nsExtraComponents };
@@ -81,7 +81,7 @@ if ( Auth::check() ) {
          */
         window.ns.language      =   '{{ app()->getLocale() }}';
         window.ns.langFiles     =   <?php echo json_encode( Hook::filter( 'ns.langFiles', [
-            'NexoPOS'   =>  asset( "/lang/" . app()->getLocale() . ".json" ),
+            'SnowSYS'   =>  asset( "/lang/" . app()->getLocale() . ".json" ),
         ]));?>
 
         /**

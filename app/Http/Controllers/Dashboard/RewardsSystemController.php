@@ -1,7 +1,7 @@
 <?php
 
 /**
- * NexoPOS Controller
+ * SnowSYS Controller
  *
  * @since  1.0
  **/

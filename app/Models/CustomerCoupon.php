@@ -7,7 +7,7 @@ use App\Events\CustomerCouponAfterUpdatedEvent;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 /**
- * This class is made to ensure that NexoPOS can count coupon usage
+ * This class is made to ensure that SnowSYS can count coupon usage
  * for a specific customer. Additionnaly when a reward system issue a coupon for a customer, it creates an instance
  * of this class which can there after be used by the customer.
  */

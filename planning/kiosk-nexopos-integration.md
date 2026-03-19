@@ -1,7 +1,7 @@
-# Integração kiosk-app ↔ NexoPOS
+# Integração kiosk-app ↔ SnowSYS
 
 ## Objetivo
-Substituir os dados estáticos do `mock-data.json` do kiosk-app por dados reais vindos da API REST do NexoPOS, e implementar a criação de pedidos reais ao finalizar uma compra no totem.
+Substituir os dados estáticos do `mock-data.json` do kiosk-app por dados reais vindos da API REST do SnowSYS, e implementar a criação de pedidos reais ao finalizar uma compra no totem.
 
 ## Estado Atual
 
@@ -11,7 +11,7 @@ Substituir os dados estáticos do `mock-data.json` do kiosk-app por dados reais 
 - `checkout()` executa apenas um `alert()` sem integração real.
 - Modo de consumo: `eat_in` ou `takeaway` (selecionado na splash).
 
-### NexoPOS
+### SnowSYS
 - Sistema Laravel 11 instalado localmente em `http://nexopos.test`.
 - API REST protegida por **Laravel Sanctum** (Bearer token).
 - Endpoint de categorias para PDV: `GET /api/categories/pos/{id?}`
@@ -22,13 +22,13 @@ Substituir os dados estáticos do `mock-data.json` do kiosk-app por dados reais 
 
 ## Etapas do Plano
 
-### 1. Configurar CORS no NexoPOS
+### 1. Configurar CORS no SnowSYS
 
 Editar `config/cors.php` para permitir requisições do kiosk-app:
 - Em dev: `http://localhost:5173`
 - Em produção: IP/domínio do totem
 
-### 2. Criar usuário kiosk no NexoPOS
+### 2. Criar usuário kiosk no SnowSYS
 
 Criar um usuário dedicado com role de permissões mínimas:
 - Leitura de categorias e produtos
@@ -88,7 +88,7 @@ async function selectCategory(id) {
 
 **Mapeamento de campos (mock → API real):**
 
-| mock-data.json | API NexoPOS |
+| mock-data.json | API SnowSYS |
 |----------------|-------------|
 | `id` | `id` |
 | `name` | `name` |
@@ -147,12 +147,12 @@ Após `POST /api/orders` bem-sucedido:
 
 ## Pontos de Atenção
 
-- **`unit_quantity_id`**: campo obrigatório no pedido. Todo produto no NexoPOS tem pelo menos uma `unit_quantity`. Ao carregar os produtos via API, salvar o `unit_quantities[0].id` junto com o produto no state do kiosk.
+- **`unit_quantity_id`**: campo obrigatório no pedido. Todo produto no SnowSYS tem pelo menos uma `unit_quantity`. Ao carregar os produtos via API, salvar o `unit_quantities[0].id` junto com o produto no state do kiosk.
 - **`sale_price` vs `price`**: a API retorna `sale_price`, o mock usa `price`. Adaptar o template Vue.
 - **Imagens**: a API retorna `galleries` (array de objetos com `url`). Pode ser vazio se nenhuma imagem foi cadastrada. Ter uma imagem fallback.
-- **CORS**: sem configuração correta do CORS no NexoPOS, todas as chamadas falharão no browser.
-- **Tipo de pedido**: o NexoPOS usa `eat_in` e `takeaway` — compatível com os valores já usados no kiosk-app.
-- **Pagamento no totem**: em produção, integrar com terminal de pagamento (MercadoPago já presente no NexoPOS via `POST /api/mercadopago/pay`).
+- **CORS**: sem configuração correta do CORS no SnowSYS, todas as chamadas falharão no browser.
+- **Tipo de pedido**: o SnowSYS usa `eat_in` e `takeaway` — compatível com os valores já usados no kiosk-app.
+- **Pagamento no totem**: em produção, integrar com terminal de pagamento (MercadoPago já presente no SnowSYS via `POST /api/mercadopago/pay`).
 
 ---
 
@@ -163,7 +163,7 @@ Após `POST /api/orders` bem-sucedido:
 - `src/App.vue` — substituir `fetch('/mock-data.json')` por chamadas à API, adaptar `checkout()`
 - `.env` (criar) — `VITE_NEXOPOS_URL` e `VITE_NEXOPOS_TOKEN`
 
-### NexoPOS
+### SnowSYS
 - `config/cors.php` — permitir origem do kiosk-app
 - (Opcional) Criar uma rota pública `/api/kiosk/categories` sem autenticação para simplificar a integração em produção
 
