@@ -196,7 +196,7 @@ use Illuminate\Support\Facades\View;
         </tr>
         <tr>
             <td>Data/Hora</td>
-            <td>{{ $order->created_at ? $order->created_at->format('d/m/Y H:i') : now()->format('d/m/Y H:i') }}</td>
+            <td>{{ $order->created_at ? \Carbon\Carbon::parse($order->created_at)->format('d/m/Y H:i') : now()->format('d/m/Y H:i') }}</td>
         </tr>
         <tr>
             <td>Tipo</td>
