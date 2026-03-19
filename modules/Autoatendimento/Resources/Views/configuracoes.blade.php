@@ -102,13 +102,28 @@
                             <div class="flex items-center gap-3">
                                 <input type="color" name="cor_primaria"
                                        value="{{ old('cor_primaria', $setting->cor_primaria) }}"
-                                       class="h-10 w-16 rounded-lg border border-input-edge cursor-pointer">
-                                <input type="text"
+                                       class="h-10 w-16 rounded-lg border border-input-edge cursor-pointer"
+                                       data-sync-text="text_cor_primaria">
+                                <input type="text" id="text_cor_primaria"
                                        value="{{ old('cor_primaria', $setting->cor_primaria) }}"
                                        class="flex-1 border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none"
                                        readonly>
                             </div>
                             <p class="text-xs text-secondary mt-1">Usada nos botões, destaques e cabeçalhos do kiosk.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-1">{{ __('Cor da sidebar de categorias') }}</label>
+                            <div class="flex items-center gap-3">
+                                <input type="color" name="cor_sidebar"
+                                       value="{{ old('cor_sidebar', $setting->cor_sidebar ?? '#111116') }}"
+                                       class="h-10 w-16 rounded-lg border border-input-edge cursor-pointer"
+                                       data-sync-text="text_cor_sidebar">
+                                <input type="text" id="text_cor_sidebar"
+                                       value="{{ old('cor_sidebar', $setting->cor_sidebar ?? '#111116') }}"
+                                       class="flex-1 border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none"
+                                       readonly>
+                            </div>
+                            <p class="text-xs text-secondary mt-1">Fundo da barra lateral de categorias no menu do kiosk.</p>
                         </div>
                     </div>
 
@@ -320,15 +335,16 @@
 
 @section('layout.dashboard.header')
 <script>
-    // Sync color input text field with color picker
+    // Sync color pickers with their text display fields
     document.addEventListener('DOMContentLoaded', function () {
-        const colorInput  = document.querySelector('input[type="color"][name="cor_primaria"]');
-        const textDisplay = colorInput?.nextElementSibling;
-        if (colorInput && textDisplay) {
-            colorInput.addEventListener('input', function () {
-                textDisplay.value = this.value;
-            });
-        }
+        document.querySelectorAll('input[type="color"][data-sync-text]').forEach(function (picker) {
+            const target = document.getElementById(picker.dataset.syncText);
+            if (target) {
+                picker.addEventListener('input', function () {
+                    target.value = this.value;
+                });
+            }
+        });
     });
 </script>
 @endsection

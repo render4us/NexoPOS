@@ -49,7 +49,6 @@ class PaymentController extends Controller
         // Enviar para o Mercado Pago
         $response = Http::withHeaders([
             'Content-Type' => 'application/json',
-            'x-test-scope' => 'sandbox',
             'Authorization' => 'Bearer ' . $settings->access_token
         ])->post("https://api.mercadopago.com/point/integration-api/devices/{$settings->terminal_id}/payment-intents", $payload);
 

@@ -32,6 +32,7 @@ class KioskOrderController extends Controller
             'mode'                       => 'required|in:eat_in,takeaway',
             'phone'                      => 'nullable|string|max:30',
             'nfe'                        => 'boolean',
+            'cpf'                        => 'nullable|string|max:14',
             'payment_type'               => 'required|in:credit_card,debit_card',
         ]);
 
@@ -55,10 +56,24 @@ class KioskOrderController extends Controller
         }
         if ($request->boolean('nfe')) {
             $notes[] = 'Solicita NF-e';
+            $cpfLimpo = preg_replace('/\D/', '', $request->cpf ?? '');
+            if (strlen($cpfLimpo) === 11) {
+                $notes[] = 'CPF: ' . $cpfLimpo;
+            }
         }
 
         // Autentica como o operador configurado para o serviço de pedidos
         Auth::onceUsingId($setting->operator_user_id ?? 1);
+
+        // Usa o cliente padrão definido nas configurações do NexoPOS
+        $defaultCustomerId = (int) ns()->option->get('ns_customers_default', 0);
+
+        if ($defaultCustomerId === 0) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Cliente padrão não configurado. Acesse Configurações → Clientes e defina um cliente padrão.',
+            ], 500);
+        }
 
         try {
             /** @var OrdersService $ordersService */
@@ -66,8 +81,8 @@ class KioskOrderController extends Controller
 
             $orderPayload = [
                 'author'         => $setting->operator_user_id ?? 1,
-                'customer_id'    => null,
-                'type'           => $request->mode === 'eat_in' ? 'eat_in' : 'takeaway',
+                'customer_id'    => $defaultCustomerId,
+                'type'           => ['identifier' => $request->mode === 'eat_in' ? 'eat_in' : 'takeaway'],
                 'payment_status' => Order::PAYMENT_UNPAID,
                 'process_status' => 'pending',
                 'note'           => implode(' | ', $notes),
@@ -82,7 +97,8 @@ class KioskOrderController extends Controller
                 'payments' => [],
             ];
 
-            $order = $ordersService->create($orderPayload);
+            $result = $ordersService->create($orderPayload);
+            $order  = $result['data']['order'];
         } catch (\Throwable $e) {
             Log::error('[Kiosk] Erro ao criar pedido', ['error' => $e->getMessage()]);
 
@@ -92,38 +108,32 @@ class KioskOrderController extends Controller
             ], 500);
         }
 
-        // ── 2. Envia para a maquininha via Mercado Pago ────────────────────
+        // ── 2. Envia para a maquininha via Mercado Pago (Payment Intents) ─────
         try {
-            $amount       = number_format($total, 2, '.', '');
-            $externalRef  = 'kiosk_' . $order->id . '_' . now()->format('YmdHis');
+            // Payment Intents API exige o valor em centavos (inteiro)
+            $amountCentavos = (int) round($total * 100);
+            $externalRef    = 'kiosk_' . $order->id . '_' . now()->format('YmdHis');
 
             $payload = [
-                'type'               => 'point',
-                'external_reference' => $externalRef,
-                'transactions'       => [
-                    'payments' => [['amount' => $amount]],
-                ],
-                'config' => [
-                    'point' => [
-                        'terminal_id'       => $mpConfig->terminal_id,
-                        'print_on_terminal' => 'no_ticket',
-                    ],
-                    'payment_method' => [
-                        'default_type'          => $request->payment_type,
-                        'default_installments'  => 1,
-                        'installments_cost'     => 'seller',
-                    ],
-                ],
+                'amount'      => $amountCentavos,
                 'description' => 'Kiosk — Pedido #' . $order->id,
+                'payment'     => [
+                    'installments'      => 1,
+                    'type'              => $request->payment_type, // 'credit_card' | 'debit_card'
+                    'installments_cost' => 'seller',
+                ],
+                'additional_info' => [
+                    'external_reference' => $externalRef,
+                    'print_on_terminal'  => false,
+                ],
             ];
 
-            $response = Http::withToken($mpConfig->access_token)
-                ->withHeaders([
-                    'Content-Type'      => 'application/json',
-                    'X-Idempotency-Key' => Str::uuid()->toString(),
+            $response = Http::withHeaders([
+                    'Content-Type'  => 'application/json',
+                    'Authorization' => 'Bearer ' . $mpConfig->access_token,
                 ])
                 ->timeout(30)
-                ->post('https://api.mercadopago.com/v1/orders', $payload);
+                ->post("https://api.mercadopago.com/point/integration-api/devices/{$mpConfig->terminal_id}/payment-intents", $payload);
 
             $res = $response->json();
 
@@ -136,7 +146,7 @@ class KioskOrderController extends Controller
                 MercadoPagoTransaction::create([
                     'order_id'       => $order->id,
                     'transaction_id' => $res['id'],
-                    'status'         => $res['status'] ?? 'pending',
+                    'status'         => $res['state'] ?? 'OPEN',
                     'payment_type'   => $request->payment_type,
                     'payload'        => $res,
                 ]);
@@ -177,17 +187,32 @@ class KioskOrderController extends Controller
         }
 
         try {
-            $response = Http::withToken($mpConfig->access_token)
-                ->get("https://api.mercadopago.com/v1/orders/{$transactionId}");
+            $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $mpConfig->access_token,
+                ])
+                ->get("https://api.mercadopago.com/point/integration-api/payment-intents/{$transactionId}");
 
             if (! $response->successful()) {
                 return response()->json(['status' => 'pending']);
             }
 
-            $res = $response->json();
-            $mpStatus = $res['status'] ?? 'pending';
+            $res      = $response->json();
+            $mpStatus = $res['state'] ?? 'OPEN';
 
-            if (in_array($mpStatus, ['paid', 'closed'])) {
+            // FINISHED = intent concluído; verificar se o pagamento foi aprovado
+            if ($mpStatus === 'FINISHED') {
+                $paymentState = $res['payment']['state'] ?? '';
+                if ($paymentState !== 'approved') {
+                    MercadoPagoTransaction::where('transaction_id', $transactionId)
+                        ->update(['status' => 'rejected', 'payload' => $res]);
+                    return response()->json([
+                        'status'  => 'error',
+                        'message' => 'Pagamento não aprovado na maquininha.',
+                    ]);
+                }
+            }
+
+            if ($mpStatus === 'FINISHED') {
                 // Atualiza transação
                 MercadoPagoTransaction::where('transaction_id', $transactionId)
                     ->update(['status' => $mpStatus, 'payload' => $res]);
@@ -208,6 +233,21 @@ class KioskOrderController extends Controller
                             'identifier' => 'mercadopago',
                             'value'      => $order->total,
                         ], $order);
+
+                        // ── Emite NFC-e se o cliente solicitou ───────────────
+                        if (str_contains($order->note ?? '', 'Solicita NF-e')) {
+                            try {
+                                $cpfNota = null;
+                                if (preg_match('/CPF: (\d{11})/', $order->note ?? '', $m)) {
+                                    $cpfNota = $m[1];
+                                }
+                                if (class_exists(\Modules\NotaFiscal\Services\NfceService::class)) {
+                                    app(\Modules\NotaFiscal\Services\NfceService::class)->emitir($order, $cpfNota);
+                                }
+                            } catch (\Throwable $e) {
+                                Log::warning('[Kiosk] Falha ao emitir NFC-e', ['error' => $e->getMessage()]);
+                            }
+                        }
 
                         // ── Imprime cupom na impressora de rede ──────────────
                         try {
@@ -239,13 +279,13 @@ class KioskOrderController extends Controller
                 ]);
             }
 
-            if (in_array($mpStatus, ['cancelled', 'expired'])) {
+            if (in_array($mpStatus, ['CANCELED', 'ERROR'])) {
                 MercadoPagoTransaction::where('transaction_id', $transactionId)
-                    ->update(['status' => $mpStatus]);
+                    ->update(['status' => strtolower($mpStatus), 'payload' => $res]);
 
                 return response()->json([
                     'status'  => 'error',
-                    'message' => 'Pagamento cancelado ou expirado.',
+                    'message' => 'Pagamento cancelado ou recusado na maquininha.',
                 ]);
             }
 

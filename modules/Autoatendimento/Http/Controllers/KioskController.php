@@ -29,6 +29,7 @@ class KioskController extends Controller
     public function produtos()
     {
         $categories = ProductCategory::select('id', 'name')
+            ->where('displays_on_pos', true)
             ->orderBy('name')
             ->get()
             ->map(fn ($c) => [

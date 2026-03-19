@@ -37,7 +37,7 @@ class NfceService
      *
      * @throws \Exception se as configurações fiscais estiverem incompletas
      */
-    public function emitir(Order $order): NotaFiscalEmissao
+    public function emitir(Order $order, ?string $cpf = null): NotaFiscalEmissao
     {
         /** @var NotaFiscalSetting $settings */
         $settings = NotaFiscalSetting::first();
@@ -70,7 +70,7 @@ class NfceService
 
         try {
             // 1. Monta o XML
-            $xmlUnsigned = $this->buildXml($order, $settings, $nNF, $serie);
+            $xmlUnsigned = $this->buildXml($order, $settings, $nNF, $serie, $cpf);
 
             // 2. Inicializa o Tools (assina + envia)
             $tools = $this->buildTools($settings);
@@ -105,7 +105,8 @@ class NfceService
         Order               $order,
         NotaFiscalSetting   $settings,
         int                 $nNF,
-        int                 $serie
+        int                 $serie,
+        ?string             $cpf = null
     ): string {
         $make = new Make();
 
@@ -161,6 +162,17 @@ class NfceService
         $std->xPais   = 'Brasil';
         $std->fone    = preg_replace('/\D/', '', $settings->telefone ?? '');
         $make->tagenderEmit($std);
+
+        // ── dest (CPF do consumidor, quando informado) ────────────────────────
+        if ($cpf) {
+            $cpfLimpo = preg_replace('/\D/', '', $cpf);
+            if (strlen($cpfLimpo) === 11) {
+                $std            = new \stdClass();
+                $std->CPF       = $cpfLimpo;
+                $std->indIEDest = 9; // não contribuinte
+                $make->tagdest($std);
+            }
+        }
 
         // ── Itens ─────────────────────────────────────────────────────────────
         $nItem       = 1;
