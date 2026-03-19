@@ -35,11 +35,11 @@ class SettingsController extends Controller
         EvolutionWhatsAppSetting::instance()->update([
             'ativo'                     => $request->boolean('ativo'),
             'disparar_ao_criar'         => $request->boolean('disparar_ao_criar'),
-            'api_url'                   => $request->input('api_url', ''),
-            'api_key'                   => $request->input('api_key', ''),
-            'instance_name'             => $request->input('instance_name', ''),
+            'api_url'                   => $request->input('api_url') ?? '',
+            'api_key'                   => $request->input('api_key') ?? '',
+            'instance_name'             => $request->input('instance_name') ?? '',
             'mensagem_template'         => $request->input('mensagem_template'),
-            'mensagem_template_criacao' => $request->input('mensagem_template_criacao', ''),
+            'mensagem_template_criacao' => $request->input('mensagem_template_criacao') ?? '',
         ]);
 
         return redirect()->route('evolution-whatsapp.configuracoes')
