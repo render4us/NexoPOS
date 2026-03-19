@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<module>
+    <namespace>EvolutionWhatsApp</namespace>
+    <version>1.0.0</version>
+    <author>Vítor Martins</author>
+    <name>Evolution WhatsApp</name>
+    <description>Envia mensagem WhatsApp via Evolution API ao cliente após pagamento aprovado no Kiosk.</description>
+</module>

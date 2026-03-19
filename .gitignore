@@ -18,6 +18,8 @@ modules/*
 !modules/Autoatendimento/**
 !modules/NotaFiscal/
 !modules/NotaFiscal/**
+!modules/EvolutionWhatsApp/
+!modules/EvolutionWhatsApp/**
 !modules/.temp
 modules/.temp/*
 !modules/index.html
