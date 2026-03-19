@@ -8,6 +8,11 @@ return new class extends Migration
 {
     public function up(): void
     {
+        // Se a tabela não existir, o CreateEvolutionWhatsAppSettingsTable já cria com todas as colunas.
+        if (! Schema::hasTable('evolution_whatsapp_settings')) {
+            return;
+        }
+
         Schema::table('evolution_whatsapp_settings', function (Blueprint $table) {
             if (! Schema::hasColumn('evolution_whatsapp_settings', 'disparar_ao_criar')) {
                 $table->boolean('disparar_ao_criar')
