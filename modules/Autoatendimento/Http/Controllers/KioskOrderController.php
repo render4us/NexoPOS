@@ -186,23 +186,49 @@ class KioskOrderController extends Controller
             return response()->json(['status' => 'error', 'message' => 'Configuração ausente.'], 500);
         }
 
+        Log::info('[Kiosk] Consultando status do payment intent', [
+            'transaction_id' => $transactionId,
+        ]);
+
         try {
             $response = Http::withHeaders([
                     'Authorization' => 'Bearer ' . $mpConfig->access_token,
                 ])
                 ->get("https://api.mercadopago.com/point/integration-api/payment-intents/{$transactionId}");
 
+            Log::info('[Kiosk] Resposta da API de status', [
+                'transaction_id' => $transactionId,
+                'http_status'    => $response->status(),
+                'body'           => $response->json(),
+            ]);
+
             if (! $response->successful()) {
+                Log::warning('[Kiosk] API retornou erro HTTP', [
+                    'transaction_id' => $transactionId,
+                    'http_status'    => $response->status(),
+                    'body'           => $response->body(),
+                ]);
                 return response()->json(['status' => 'pending']);
             }
 
-            $res      = $response->json();
-            $mpStatus = $res['state'] ?? 'OPEN';
+            $res          = $response->json();
+            $mpStatus     = $res['state'] ?? 'OPEN';
+            $paymentState = $res['payment']['state'] ?? null;
+
+            Log::info('[Kiosk] Estado do payment intent', [
+                'transaction_id' => $transactionId,
+                'mp_state'       => $mpStatus,
+                'payment_state'  => $paymentState,
+            ]);
 
             // FINISHED = intent concluído; verificar se o pagamento foi aprovado
             if ($mpStatus === 'FINISHED') {
-                $paymentState = $res['payment']['state'] ?? '';
                 if ($paymentState !== 'approved') {
+                    Log::warning('[Kiosk] Pagamento finalizado mas não aprovado', [
+                        'transaction_id' => $transactionId,
+                        'payment_state'  => $paymentState,
+                        'full_payment'   => $res['payment'] ?? null,
+                    ]);
                     MercadoPagoTransaction::where('transaction_id', $transactionId)
                         ->update(['status' => 'rejected', 'payload' => $res]);
                     return response()->json([
@@ -210,24 +236,42 @@ class KioskOrderController extends Controller
                         'message' => 'Pagamento não aprovado na maquininha.',
                     ]);
                 }
-            }
 
-            if ($mpStatus === 'FINISHED') {
                 // Atualiza transação
                 MercadoPagoTransaction::where('transaction_id', $transactionId)
                     ->update(['status' => $mpStatus, 'payload' => $res]);
 
                 $transaction = MercadoPagoTransaction::where('transaction_id', $transactionId)->first();
 
+                Log::info('[Kiosk] Transação encontrada no banco', [
+                    'transaction_id' => $transactionId,
+                    'transaction'    => $transaction?->toArray(),
+                ]);
+
                 if ($transaction && $transaction->order_id) {
                     $order = Order::find($transaction->order_id);
 
+                    Log::info('[Kiosk] Pedido encontrado', [
+                        'order_id'       => $transaction->order_id,
+                        'order_found'    => $order !== null,
+                        'payment_status' => $order?->payment_status,
+                    ]);
+
                     if ($order && $order->payment_status !== Order::PAYMENT_PAID) {
-                        $this->processarPagamentoAprovado(
+                        $log = $this->processarPagamentoAprovado(
                             $order,
                             $transaction->payment_type ?? 'credit_card'
                         );
+                        Log::info('[Kiosk] processarPagamentoAprovado concluído', ['log' => $log]);
+                    } else {
+                        Log::info('[Kiosk] Pedido já estava pago, pulando processamento', [
+                            'order_id' => $transaction->order_id,
+                        ]);
                     }
+                } else {
+                    Log::error('[Kiosk] Transação sem order_id ou não encontrada', [
+                        'transaction_id' => $transactionId,
+                    ]);
                 }
 
                 return response()->json([
@@ -238,6 +282,10 @@ class KioskOrderController extends Controller
             }
 
             if (in_array($mpStatus, ['CANCELED', 'ERROR'])) {
+                Log::warning('[Kiosk] Pagamento cancelado ou com erro', [
+                    'transaction_id' => $transactionId,
+                    'mp_state'       => $mpStatus,
+                ]);
                 MercadoPagoTransaction::where('transaction_id', $transactionId)
                     ->update(['status' => strtolower($mpStatus), 'payload' => $res]);
 
@@ -247,10 +295,20 @@ class KioskOrderController extends Controller
                 ]);
             }
 
+            // Ainda aguardando (OPEN ou outro estado)
+            Log::debug('[Kiosk] Ainda aguardando pagamento', [
+                'transaction_id' => $transactionId,
+                'mp_state'       => $mpStatus,
+            ]);
+
             return response()->json(['status' => 'pending']);
 
         } catch (\Throwable $e) {
-            Log::error('[Kiosk] Erro ao consultar status', ['error' => $e->getMessage()]);
+            Log::error('[Kiosk] Erro ao consultar status', [
+                'transaction_id' => $transactionId,
+                'error'          => $e->getMessage(),
+                'trace'          => $e->getTraceAsString(),
+            ]);
 
             return response()->json(['status' => 'pending']);
         }
