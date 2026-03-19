@@ -243,36 +243,38 @@
         <div class="flex flex-1 overflow-hidden">
 
             {{-- ── Sidebar de categorias ── --}}
-            <aside id="cat-sidebar" class="flex-shrink-0 overflow-y-auto no-scrollbar py-4 flex flex-col gap-1"
+            <aside id="cat-sidebar" class="flex-shrink-0 overflow-y-auto no-scrollbar"
                    style="width:120px; background:{{ $setting->cor_sidebar ?? '#111116' }};">
 
-                {{-- "Todos" --}}
-                <button type="button" @click="selectedCategory = null"
-                        :class="selectedCategory === null ? 'active' : ''"
-                        class="cat-btn">
-                    <div class="cat-icon">🏠</div>
-                    <span class="cat-label">Todos</span>
-                </button>
+                {{-- Wrapper centraliza verticalmente quando cabe; expande quando transborda --}}
+                <div class="flex flex-col gap-1 py-4 min-h-full justify-center">
 
-                {{-- Categorias dinâmicas --}}
-                <template x-for="cat in categories" :key="cat.id">
-                    <button type="button" @click="selectedCategory = cat.id"
-                            :class="selectedCategory === cat.id ? 'active' : ''"
+                    {{-- "Todos" --}}
+                    <button type="button" @click="selectedCategory = null"
+                            :class="selectedCategory === null ? 'active' : ''"
                             class="cat-btn">
-                        {{-- Usa foto do primeiro produto da categoria, se existir --}}
-                        <template x-if="getCategoryImage(cat.id)">
-                            <div class="cat-icon cat-icon-img"
-                                 :style="`background-image: url('${getCategoryImage(cat.id)}');`"></div>
-                        </template>
-                        <template x-if="!getCategoryImage(cat.id)">
-                            <div class="cat-icon" x-text="getCategoryIcon(cat.name)"></div>
-                        </template>
-                        <span class="cat-label" x-text="cat.name"></span>
+                        <div class="cat-icon">🏠</div>
+                        <span class="cat-label">Todos</span>
                     </button>
-                </template>
 
-                {{-- Espaçador final --}}
-                <div class="flex-1 min-h-[60px]"></div>
+                    {{-- Categorias dinâmicas --}}
+                    <template x-for="cat in categories" :key="cat.id">
+                        <button type="button" @click="selectedCategory = cat.id"
+                                :class="selectedCategory === cat.id ? 'active' : ''"
+                                class="cat-btn">
+                            {{-- Usa foto do primeiro produto da categoria, se existir --}}
+                            <template x-if="getCategoryImage(cat.id)">
+                                <div class="cat-icon cat-icon-img"
+                                     :style="`background-image: url('${getCategoryImage(cat.id)}');`"></div>
+                            </template>
+                            <template x-if="!getCategoryImage(cat.id)">
+                                <div class="cat-icon" x-text="getCategoryIcon(cat.name)"></div>
+                            </template>
+                            <span class="cat-label" x-text="cat.name"></span>
+                        </button>
+                    </template>
+
+                </div>
             </aside>
 
             {{-- ── Área de produtos ── --}}
