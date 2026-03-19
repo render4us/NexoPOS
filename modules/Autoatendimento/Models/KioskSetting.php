@@ -22,15 +22,17 @@ class KioskSetting extends Model
         'printer_ip',
         'printer_port',
         'printer_columns',
+        'teste_pagamento_ativo',
     ];
 
     protected $casts = [
-        'ativo'            => 'boolean',
-        'operator_user_id' => 'integer',
-        'reset_timeout'    => 'integer',
-        'printer_enabled'  => 'boolean',
-        'printer_port'     => 'integer',
-        'printer_columns'  => 'integer',
+        'ativo'                  => 'boolean',
+        'operator_user_id'       => 'integer',
+        'reset_timeout'          => 'integer',
+        'printer_enabled'        => 'boolean',
+        'printer_port'           => 'integer',
+        'printer_columns'        => 'integer',
+        'teste_pagamento_ativo'  => 'boolean',
     ];
 
     /**
@@ -49,9 +51,10 @@ class KioskSetting extends Model
             'operator_user_id' => 1,
             'reset_timeout'    => 10,
             'printer_enabled'  => false,
-            'printer_ip'       => '',
-            'printer_port'     => 9100,
-            'printer_columns'  => 48,
+            'printer_ip'              => '',
+            'printer_port'            => 9100,
+            'printer_columns'         => 48,
+            'teste_pagamento_ativo'   => false,
         ]);
     }
 }

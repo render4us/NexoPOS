@@ -24,6 +24,7 @@ return new class extends Migration
                 $table->string('printer_ip', 50)->nullable();
                 $table->unsignedSmallInteger('printer_port')->default(9100);
                 $table->unsignedTinyInteger('printer_columns')->default(48);
+                $table->boolean('teste_pagamento_ativo')->default(false);
                 $table->timestamps();
             });
         } else {
@@ -43,6 +44,9 @@ return new class extends Migration
                 }
                 if (! Schema::hasColumn('kiosk_settings', 'printer_columns')) {
                     $table->unsignedTinyInteger('printer_columns')->default(48)->after('printer_port');
+                }
+                if (! Schema::hasColumn('kiosk_settings', 'teste_pagamento_ativo')) {
+                    $table->boolean('teste_pagamento_ativo')->default(false)->after('printer_columns');
                 }
             });
         }

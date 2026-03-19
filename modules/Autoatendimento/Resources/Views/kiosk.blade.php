@@ -818,6 +818,20 @@
         </div>
 
         <p class="text-white/35 text-xs text-center z-10">Não feche ou recarregue esta tela</p>
+
+        @if ($setting->teste_pagamento_ativo)
+        {{-- Botão de teste — só aparece quando habilitado nas configurações --}}
+        <div class="z-10 flex flex-col items-center gap-2">
+            <button type="button" @click="simularPagamento()"
+                    class="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold
+                           bg-white/10 border border-white/20 text-white/70 hover:bg-white/20
+                           hover:text-white transition-all backdrop-blur-sm">
+                <span class="text-base">🧪</span>
+                Simular Pagamento Aprovado
+            </button>
+            <p class="text-white/30 text-xs">Modo teste — não usar em produção</p>
+        </div>
+        @endif
     </div>
 
     {{-- ══════════════════════════════════════════════════════
@@ -1269,6 +1283,35 @@ function kiosk() {
                     // Erro de rede → continua tentando
                 }
             }, 3000);
+        },
+
+        async simularPagamento() {
+            if (! this.orderId) {
+                alert('Nenhum pedido pendente para simular.');
+                return;
+            }
+
+            // Para o polling do Mercado Pago
+            clearInterval(this.pollingInterval);
+
+            try {
+                const data = await fetch('/api/kiosk/simular-pagamento', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify({ order_id: this.orderId }),
+                }).then(r => r.json());
+
+                if (data.status === 'success') {
+                    this.step = 'sucesso';
+                    this.iniciarContadorReset();
+                } else {
+                    this.errorMessage = data.message || 'Erro na simulação.';
+                    this.step = 'erro';
+                }
+            } catch (e) {
+                this.errorMessage = 'Erro de conexão ao simular pagamento.';
+                this.step = 'erro';
+            }
         },
 
         iniciarContadorReset() {

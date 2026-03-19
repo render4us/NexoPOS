@@ -3,6 +3,8 @@ use App\Models\Order;
 use App\Classes\Hook;
 use Illuminate\Support\Facades\View;
 ?>
+@once
+@push('styles')
 <style>
     .cupom-br * {
         box-sizing: border-box;
@@ -156,6 +158,8 @@ use Illuminate\Support\Facades\View;
         }
     }
 </style>
+@endpush
+@endonce
 
 <div class="cupom-br">
 

@@ -36,6 +36,7 @@ if ( Auth::check() && Auth::user()->attribute instanceof UserAttribute ) {
         'resources/scss/' . $theme . '.scss'
     ])
     @yield( 'layout.base.header' )
+    @stack( 'styles' )
     <script>
         /**
          * constant where is registered

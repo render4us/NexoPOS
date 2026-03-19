@@ -217,58 +217,16 @@ class KioskOrderController extends Controller
                 MercadoPagoTransaction::where('transaction_id', $transactionId)
                     ->update(['status' => $mpStatus, 'payload' => $res]);
 
-                // Registra pagamento no pedido SnowSYS
                 $transaction = MercadoPagoTransaction::where('transaction_id', $transactionId)->first();
 
                 if ($transaction && $transaction->order_id) {
                     $order = Order::find($transaction->order_id);
 
                     if ($order && $order->payment_status !== Order::PAYMENT_PAID) {
-                        $setting = KioskSetting::instance();
-                        Auth::onceUsingId($setting->operator_user_id ?? 1);
-
-                        /** @var OrdersService $ordersService */
-                        $ordersService = app(OrdersService::class);
-                        $ordersService->makeOrderSinglePayment([
-                            'identifier' => 'mercadopago',
-                            'value'      => $order->total,
-                        ], $order);
-
-                        // ── Emite NFC-e se o cliente solicitou ───────────────
-                        if (str_contains($order->note ?? '', 'Solicita NF-e')) {
-                            try {
-                                $cpfNota = null;
-                                if (preg_match('/CPF: (\d{11})/', $order->note ?? '', $m)) {
-                                    $cpfNota = $m[1];
-                                }
-                                if (class_exists(\Modules\NotaFiscal\Services\NfceService::class)) {
-                                    app(\Modules\NotaFiscal\Services\NfceService::class)->emitir($order, $cpfNota);
-                                }
-                            } catch (\Throwable $e) {
-                                Log::warning('[Kiosk] Falha ao emitir NFC-e', ['error' => $e->getMessage()]);
-                            }
-                        }
-
-                        // ── Imprime cupom na impressora de rede ──────────────
-                        try {
-                            $items = $order->products->map(fn ($p) => [
-                                'name'       => $p->name,
-                                'quantity'   => $p->quantity,
-                                'unit_price' => $p->unit_price,
-                            ])->toArray();
-
-                            app(EscPosPrinterService::class)->printReceipt(
-                                items:       $items,
-                                total:       (float) $order->total,
-                                mode:        $transaction->payload['description'] ?? 'takeaway',
-                                phone:       null,
-                                paymentType: $transaction->payment_type ?? 'credit_card',
-                                orderId:     $order->id,
-                                setting:     $setting
-                            );
-                        } catch (\Throwable $e) {
-                            Log::warning('[Kiosk] Falha ao imprimir cupom', ['error' => $e->getMessage()]);
-                        }
+                        $this->processarPagamentoAprovado(
+                            $order,
+                            $transaction->payment_type ?? 'credit_card'
+                        );
                     }
                 }
 
@@ -296,5 +254,140 @@ class KioskOrderController extends Controller
 
             return response()->json(['status' => 'pending']);
         }
+    }
+
+    /**
+     * Simula um pagamento aprovado para um pedido kiosk pendente.
+     * Disponível apenas quando "teste_pagamento_ativo" estiver habilitado nas configurações.
+     */
+    public function simularPagamento(Request $request)
+    {
+        $setting = KioskSetting::instance();
+
+        if (! $setting->teste_pagamento_ativo) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Simulação de pagamento está desativada nas configurações do Kiosk.',
+            ], 403);
+        }
+
+        $request->validate([
+            'order_id' => 'nullable|integer|exists:nexopos_orders,id',
+        ]);
+
+        // Se não informado, usa o último pedido kiosk não pago
+        if ($request->filled('order_id')) {
+            $order = Order::find($request->order_id);
+        } else {
+            $order = Order::where('payment_status', Order::PAYMENT_UNPAID)
+                ->where('note', 'like', '%Pedido via Kiosk%')
+                ->latest()
+                ->first();
+        }
+
+        if (! $order) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Nenhum pedido kiosk pendente encontrado.',
+            ], 404);
+        }
+
+        if ($order->payment_status === Order::PAYMENT_PAID) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => "Pedido #{$order->id} já está pago.",
+            ], 422);
+        }
+
+        if (! str_contains($order->note ?? '', 'Pedido via Kiosk')) {
+            return response()->json([
+                'status'  => 'error',
+                'message' => "Pedido #{$order->id} não é um pedido de kiosk.",
+            ], 422);
+        }
+
+        try {
+            $log = $this->processarPagamentoAprovado($order, 'credit_card');
+
+            return response()->json([
+                'status'   => 'success',
+                'message'  => "✅ Pagamento simulado com sucesso para o pedido #{$order->id}!",
+                'order_id' => $order->id,
+                'detalhes' => $log,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('[Kiosk] Erro na simulação de pagamento', ['error' => $e->getMessage()]);
+
+            return response()->json([
+                'status'  => 'error',
+                'message' => 'Erro ao processar simulação: ' . $e->getMessage(),
+            ], 500);
+        }
+    }
+
+    /**
+     * Centraliza toda a lógica pós-aprovação de pagamento.
+     * Chamado tanto pelo polling real do Mercado Pago quanto pela simulação de teste.
+     *
+     * @return array  Log de ações executadas
+     */
+    private function processarPagamentoAprovado(Order $order, string $paymentType): array
+    {
+        $setting = KioskSetting::instance();
+        $log     = [];
+
+        Auth::onceUsingId($setting->operator_user_id ?? 1);
+
+        /** @var OrdersService $ordersService */
+        $ordersService = app(OrdersService::class);
+        $ordersService->makeOrderSinglePayment([
+            'identifier' => 'mercadopago',
+            'value'      => $order->total,
+        ], $order);
+
+        $log[] = "Pagamento registrado (R$ {$order->total})";
+
+        // ── Emite NFC-e se o cliente solicitou ───────────────────────────
+        if (str_contains($order->note ?? '', 'Solicita NF-e')) {
+            try {
+                $cpfNota = null;
+                if (preg_match('/CPF: (\d{11})/', $order->note ?? '', $m)) {
+                    $cpfNota = $m[1];
+                }
+                if (class_exists(\Modules\NotaFiscal\Services\NfceService::class)) {
+                    app(\Modules\NotaFiscal\Services\NfceService::class)->emitir($order, $cpfNota);
+                    $log[] = 'NFC-e emitida' . ($cpfNota ? " (CPF: {$cpfNota})" : '');
+                }
+            } catch (\Throwable $e) {
+                Log::warning('[Kiosk] Falha ao emitir NFC-e', ['error' => $e->getMessage()]);
+                $log[] = 'NFC-e: falhou — ' . $e->getMessage();
+            }
+        }
+
+        // ── Imprime cupom na impressora de rede ──────────────────────────
+        try {
+            $items = $order->products->map(fn ($p) => [
+                'name'       => $p->name,
+                'quantity'   => $p->quantity,
+                'unit_price' => $p->unit_price,
+            ])->toArray();
+
+            $printed = app(EscPosPrinterService::class)->printReceipt(
+                items:       $items,
+                total:       (float) $order->total,
+                mode:        $order->type ?? 'takeaway',
+                phone:       null,
+                paymentType: $paymentType,
+                orderId:     $order->id,
+                setting:     $setting
+            );
+
+            $log[] = $printed ? 'Cupom impresso na impressora térmica' : 'Impressora desativada ou indisponível';
+        } catch (\Throwable $e) {
+            Log::warning('[Kiosk] Falha ao imprimir cupom', ['error' => $e->getMessage()]);
+            $log[] = 'Impressão: falhou — ' . $e->getMessage();
+        }
+
+        return $log;
     }
 }

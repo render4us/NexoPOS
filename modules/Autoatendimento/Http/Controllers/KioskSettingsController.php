@@ -40,7 +40,8 @@ class KioskSettingsController extends Controller
             'printer_enabled'  => 'boolean',
             'printer_ip'       => 'nullable|ip',
             'printer_port'     => 'nullable|integer|min:1|max:65535',
-            'printer_columns'  => 'nullable|integer|in:32,40,48',
+            'printer_columns'       => 'nullable|integer|in:32,40,48',
+            'teste_pagamento_ativo' => 'boolean',
         ]);
 
         $setting = KioskSetting::instance();
@@ -79,9 +80,10 @@ class KioskSettingsController extends Controller
             'operator_user_id' => $request->input('operator_user_id'),
             'reset_timeout'    => $request->input('reset_timeout'),
             'printer_enabled'  => $request->boolean('printer_enabled'),
-            'printer_ip'       => $request->input('printer_ip'),
-            'printer_port'     => $request->input('printer_port', 9100),
-            'printer_columns'  => $request->input('printer_columns', 48),
+            'printer_ip'             => $request->input('printer_ip'),
+            'printer_port'           => $request->input('printer_port', 9100),
+            'printer_columns'        => $request->input('printer_columns', 48),
+            'teste_pagamento_ativo'  => $request->boolean('teste_pagamento_ativo'),
         ]);
 
         return redirect()->route('autoatendimento.configuracoes')

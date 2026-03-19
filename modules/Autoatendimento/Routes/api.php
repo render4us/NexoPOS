@@ -26,4 +26,8 @@ Route::withoutMiddleware(EnsureFrontendRequestsAreStateful::class)->group(functi
     Route::get('kiosk/status/{transactionId}', [KioskOrderController::class, 'status'])
         ->name('kiosk.pedido.status');
 
+    // Simulação de pagamento aprovado (apenas quando teste_pagamento_ativo = true)
+    Route::post('kiosk/simular-pagamento', [KioskOrderController::class, 'simularPagamento'])
+        ->name('kiosk.simular-pagamento');
+
 });

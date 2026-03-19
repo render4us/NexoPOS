@@ -304,6 +304,74 @@
                 </div>
             </div>
 
+            {{-- ── Teste de Pagamento ────────────────────────────────────── --}}
+            <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
+                <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
+                    <i class="las la-flask text-secondary"></i>
+                    <h2 class="text-sm font-semibold text-primary">{{ __('Teste de Pagamento') }}</h2>
+                    <span class="ml-auto text-xs px-2 py-0.5 rounded border border-error-secondary bg-error-primary text-error-tertiary">
+                        Somente desenvolvimento
+                    </span>
+                </div>
+                <div class="ns-box-body p-4 space-y-4">
+
+                    {{-- Toggle para ativar/desativar --}}
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="hidden" name="teste_pagamento_ativo" value="0">
+                        <input type="checkbox" name="teste_pagamento_ativo" value="1"
+                               {{ old('teste_pagamento_ativo', $setting->teste_pagamento_ativo) ? 'checked' : '' }}
+                               class="w-4 h-4 rounded border-input-edge text-info-tertiary">
+                        <span class="text-sm font-medium text-primary">
+                            {{ __('Habilitar simulação de pagamento aprovado') }}
+                        </span>
+                    </label>
+                    <p class="text-xs text-secondary">
+                        Quando ativo, libera o botão abaixo para simular um pagamento aprovado sem a maquininha.
+                        <strong>Desative em produção.</strong>
+                    </p>
+
+                    {{-- Painel de simulação — sempre visível, botão desabilitado quando inativo --}}
+                    <div class="border border-box-edge rounded-lg p-4 space-y-3 {{ $setting->teste_pagamento_ativo ? '' : 'opacity-50' }}">
+                        <p class="text-xs text-secondary flex items-center gap-2">
+                            <i class="las la-exclamation-triangle text-error-tertiary text-base"></i>
+                            Simula o retorno de pagamento aprovado do Mercado Pago para um pedido kiosk pendente.
+                            Registra o pagamento, imprime o cupom (se configurado) e dispara o WhatsApp.
+                        </p>
+
+                        <div class="flex items-end gap-3">
+                            <div class="flex-1">
+                                <label class="block text-xs font-medium text-secondary mb-1">
+                                    ID do Pedido
+                                    <span class="opacity-60">(deixe vazio para usar o último pedido kiosk pendente)</span>
+                                </label>
+                                <input type="text" id="simular_order_id"
+                                       placeholder="Ex: 42 — ou deixe vazio"
+                                       {{ $setting->teste_pagamento_ativo ? '' : 'disabled' }}
+                                       class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary font-mono">
+                            </div>
+                            <button type="button" id="btn_simular_pagamento"
+                                    {{ $setting->teste_pagamento_ativo ? '' : 'disabled' }}
+                                    class="inline-flex items-center gap-2 px-5 py-2 border border-input-edge bg-input-button
+                                           hover:bg-input-button-hover text-primary rounded-lg font-semibold text-sm
+                                           transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed">
+                                <i class="las la-play-circle text-base"></i>
+                                Simular Pagamento Aprovado
+                            </button>
+                        </div>
+
+                        @if (! $setting->teste_pagamento_ativo)
+                        <p class="text-xs text-secondary italic">
+                            Habilite o toggle acima e salve as configurações para usar o simulador.
+                        </p>
+                        @endif
+
+                        {{-- Resultado --}}
+                        <div id="simular_resultado" class="hidden text-sm rounded-lg px-3 py-2 border"></div>
+                    </div>
+
+                </div>
+            </div>
+
             {{-- ── Informações --}}
             <div class="flex items-start gap-3 border border-info-secondary bg-info-primary rounded-lg px-4 py-3">
                 <i class="las la-info-circle text-xl text-info-tertiary flex-shrink-0 mt-0.5"></i>
@@ -335,8 +403,9 @@
 
 @section('layout.dashboard.header')
 <script>
-    // Sync color pickers with their text display fields
     document.addEventListener('DOMContentLoaded', function () {
+
+        // Sync color pickers with their text display fields
         document.querySelectorAll('input[type="color"][data-sync-text]').forEach(function (picker) {
             const target = document.getElementById(picker.dataset.syncText);
             if (target) {
@@ -345,6 +414,59 @@
                 });
             }
         });
+
+        // ── Simulação de pagamento ──────────────────────────────────────
+        const btnSimular   = document.getElementById('btn_simular_pagamento');
+        const inputOrderId = document.getElementById('simular_order_id');
+        const resultado    = document.getElementById('simular_resultado');
+
+        if (btnSimular) {
+            btnSimular.addEventListener('click', async function () {
+                btnSimular.disabled = true;
+                btnSimular.innerHTML = '<i class="las la-spinner la-spin text-base"></i> Simulando...';
+                resultado.className = 'hidden text-sm rounded-lg px-3 py-2 border';
+                resultado.textContent = '';
+
+                const body = {};
+                const orderId = inputOrderId ? inputOrderId.value.trim() : '';
+                if (orderId) body.order_id = parseInt(orderId);
+
+                try {
+                    const response = await fetch('/api/kiosk/simular-pagamento', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content
+                                         || '{{ csrf_token() }}',
+                        },
+                        body: JSON.stringify(body),
+                    });
+
+                    const data = await response.json();
+
+                    if (data.status === 'success') {
+                        resultado.className = 'text-sm rounded-lg px-3 py-2 border border-success-secondary bg-success-primary text-success-tertiary';
+                        let html = '<strong>' + data.message + '</strong>';
+                        if (data.detalhes && data.detalhes.length) {
+                            html += '<ul class="list-disc list-inside mt-1 space-y-0.5">';
+                            data.detalhes.forEach(d => { html += '<li>' + d + '</li>'; });
+                            html += '</ul>';
+                        }
+                        resultado.innerHTML = html;
+                    } else {
+                        resultado.className = 'text-sm rounded-lg px-3 py-2 border border-error-secondary bg-error-primary text-error-tertiary';
+                        resultado.textContent = '❌ ' + (data.message || 'Erro desconhecido.');
+                    }
+                } catch (err) {
+                    resultado.className = 'text-sm rounded-lg px-3 py-2 border border-error-secondary bg-error-primary text-error-tertiary';
+                    resultado.textContent = '❌ Erro de comunicação: ' + err.message;
+                } finally {
+                    btnSimular.disabled = false;
+                    btnSimular.innerHTML = '<i class="las la-play-circle text-base"></i> Simular Pagamento Aprovado';
+                }
+            });
+        }
+
     });
 </script>
 @endsection

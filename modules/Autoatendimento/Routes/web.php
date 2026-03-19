@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Modules\Autoatendimento\Http\Controllers\KioskController;
+use Modules\Autoatendimento\Http\Controllers\KioskOrderController;
 use Modules\Autoatendimento\Http\Controllers\KioskSettingsController;
 
 /*
@@ -22,4 +23,5 @@ Route::middleware('auth')->group(function () {
 
     Route::post('dashboard/autoatendimento/salvar', [KioskSettingsController::class, 'salvar'])
         ->name('autoatendimento.configuracoes.salvar');
+
 });
