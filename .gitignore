@@ -20,6 +20,8 @@ modules/*
 !modules/NotaFiscal/**
 !modules/EvolutionWhatsApp/
 !modules/EvolutionWhatsApp/**
+!modules/CupomBR/
+!modules/CupomBR/**
 !modules/.temp
 modules/.temp/*
 !modules/index.html

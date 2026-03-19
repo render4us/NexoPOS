@@ -1,0 +1,8 @@
+<?xml version="1.0"?>
+<module>
+    <namespace>CupomBR</namespace>
+    <version>1.0.0</version>
+    <author>Vítor Martins</author>
+    <name>Cupom BR</name>
+    <description>Template de cupom de pedido no estilo do mercado brasileiro, selecionável nas configurações de recibo do NexoPOS.</description>
+</module>

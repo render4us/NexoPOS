@@ -44,9 +44,9 @@ return [
         [
             'label' => __( 'Receipt Template' ),
             'type' => 'select',
-            'options' => Helper::kvToJsOptions( [
+            'options' => Helper::kvToJsOptions( Hook::filter( 'ns-receipt-template-options', [
                 'default' => __( 'Default' ),
-            ] ),
+            ] ) ),
             'name' => 'ns_invoice_receipt_template',
             'value' => ns()->option->get( 'ns_invoice_receipt_template' ),
             'description' => __( 'Choose the template that applies to receipts' ),
