@@ -42,12 +42,13 @@ class MercadoPagoController extends Controller
         }
 
         try {
-            $externalRef = 'temp_' . now()->format('YmdHis') . '_' . ($order['customer_id'] ?? 'guest');
+            $externalRef = $order['code'] ?? ('temp_' . now()->format('YmdHis') . '_' . ($order['customer_id'] ?? 'guest'));
             $amount = number_format((float) ($order['total'] ?? 0), 2, '.', '');
 
             $payload = [
                 'type' => 'point',
                 'external_reference' => $externalRef,
+                'notification_url' => url('/api/mercadopago/callback'),
                 'transactions' => [
                     'payments' => [
                         [
