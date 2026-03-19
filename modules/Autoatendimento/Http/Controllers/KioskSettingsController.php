@@ -37,11 +37,12 @@ class KioskSettingsController extends Controller
             'video_arquivo'    => 'nullable|file|mimes:mp4,webm|max:51200',
             'operator_user_id' => 'required|integer|exists:nexopos_users,id',
             'reset_timeout'    => 'required|integer|min:5|max:120',
-            'printer_enabled'  => 'boolean',
-            'printer_ip'       => 'nullable|ip',
-            'printer_port'     => 'nullable|integer|min:1|max:65535',
-            'printer_columns'       => 'nullable|integer|in:32,40,48',
-            'teste_pagamento_ativo' => 'boolean',
+            'printer_enabled'   => 'boolean',
+            'printer_ip'        => 'nullable|ip',
+            'printer_port'      => 'nullable|integer|min:1|max:65535',
+            'printer_columns'        => 'nullable|integer|in:32,40,48',
+            'printer_http_url'       => 'nullable|url|max:500',
+            'teste_pagamento_ativo'  => 'boolean',
         ]);
 
         $setting = KioskSetting::instance();
@@ -68,6 +69,9 @@ class KioskSettingsController extends Controller
         } else {
             $videoUrl = $request->input('video_url') ?: $setting->video_url;
         }
+
+        // Salva URL do kiosk server nas options globais (não na tabela kiosk_settings)
+        ns()->option->set('kiosk_printer_http_url', $request->input('printer_http_url') ?? '');
 
         $setting->update([
             'ativo'            => $request->boolean('ativo'),

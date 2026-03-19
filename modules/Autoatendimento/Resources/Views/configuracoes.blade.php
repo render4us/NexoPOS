@@ -292,6 +292,26 @@
                         </div>
                     </div>
 
+                    {{-- Kiosk Server (impressora em outra sub-rede) --}}
+                    <div class="border border-box-edge rounded-lg p-4 space-y-2 bg-box-background">
+                        <p class="text-sm font-semibold text-primary flex items-center gap-2">
+                            <i class="las la-network-wired"></i>
+                            {{ __('Kiosk Server (impressora em outra sub-rede)') }}
+                        </p>
+                        <p class="text-xs text-secondary">
+                            Se a impressora está numa rede diferente do servidor, instale o <strong>KioskServer</strong>
+                            no próprio totem e informe a URL abaixo. Deixe em branco para usar TCP direto.
+                        </p>
+                        <input type="text" name="printer_http_url"
+                               value="{{ old('printer_http_url', ns()->option->get('kiosk_printer_http_url')) }}"
+                               placeholder="http://192.168.2.50:8091"
+                               class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary font-mono">
+                        <p class="text-xs text-secondary">
+                            Exemplo: <code class="font-mono bg-box-background-alt px-1 rounded">http://192.168.2.50:8091</code>
+                            &nbsp;—&nbsp; IP do totem na rede do servidor.
+                        </p>
+                    </div>
+
                     {{-- Dica de compatibilidade --}}
                     <div class="flex items-start gap-2 text-xs text-secondary">
                         <i class="las la-info-circle mt-0.5 flex-shrink-0"></i>

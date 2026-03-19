@@ -171,9 +171,56 @@ class EscPosPrinterService
         return strlen($text) > $max ? substr($text, 0, $max) : $text;
     }
 
-    // ── Envio TCP ────────────────────────────────────────────────────────
+    // ── Envio: HTTP (kiosk server) ou TCP direto ─────────────────────────
 
     private function send(string $data, string $ip, int $port): bool
+    {
+        // Se houver um kiosk server configurado, usa HTTP em vez de TCP direto.
+        // Isso resolve o caso em que a impressora está em outra sub-rede.
+        $httpUrl = config('kiosk.printer_http_url')
+            ?: ns()->option->get('kiosk_printer_http_url');
+
+        if ($httpUrl) {
+            return $this->sendViaHttp($data, rtrim($httpUrl, '/') . '/imprimir');
+        }
+
+        return $this->sendViaTcp($data, $ip, $port);
+    }
+
+    private function sendViaHttp(string $data, string $url): bool
+    {
+        $payload = json_encode(['dados' => base64_encode($data)]);
+
+        $ch = curl_init($url);
+        curl_setopt_array($ch, [
+            CURLOPT_POST           => true,
+            CURLOPT_POSTFIELDS     => $payload,
+            CURLOPT_HTTPHEADER     => ['Content-Type: application/json', 'Accept: application/json'],
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_TIMEOUT        => 5,
+            CURLOPT_CONNECTTIMEOUT => 3,
+        ]);
+
+        $response = curl_exec($ch);
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        $error    = curl_error($ch);
+        curl_close($ch);
+
+        if ($error) {
+            Log::warning("[Kiosk] Kiosk Server indisponível: {$error}");
+            return false;
+        }
+
+        if ($httpCode !== 200) {
+            Log::warning("[Kiosk] Kiosk Server retornou HTTP {$httpCode}: {$response}");
+            return false;
+        }
+
+        Log::debug("[Kiosk] Cupom enviado via Kiosk Server ({$url})");
+        return true;
+    }
+
+    private function sendViaTcp(string $data, string $ip, int $port): bool
     {
         $socket = @fsockopen($ip, $port, $errno, $errstr, 3);
 

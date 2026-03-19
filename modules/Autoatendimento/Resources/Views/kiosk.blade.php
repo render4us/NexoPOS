@@ -811,6 +811,25 @@
             <p class="text-white/65 text-base">Aproxime ou insira o cartão<br>na maquininha</p>
         </div>
 
+        {{-- Aviso destacado: botão verde --}}
+        <div class="z-10 w-full max-w-sm">
+            <div class="flex items-center gap-4 bg-white rounded-2xl px-5 py-4 shadow-xl"
+                 style="border-left: 6px solid #22c55e;">
+                <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl font-black text-white"
+                     style="background-color: #22c55e;">
+                    ✓
+                </div>
+                <div>
+                    <p class="font-black text-gray-800 text-sm leading-tight">
+                        Siga as instruções na maquininha
+                    </p>
+                    <p class="text-gray-500 text-xs mt-1 leading-snug">
+                        Pressione o <strong class="text-green-600">botão verde</strong> para confirmar<br>e aproxime ou insira o cartão.
+                    </p>
+                </div>
+            </div>
+        </div>
+
         <div class="bg-white/15 backdrop-blur-sm rounded-2xl px-10 py-5 text-center z-10 border border-white/20">
             <p class="text-white/60 text-xs font-semibold uppercase tracking-widest mb-1">Valor a pagar</p>
             <p class="text-5xl font-black text-white"
