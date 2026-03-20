@@ -149,7 +149,7 @@ class KioskOrderController extends Controller
                 $pixPayload = [
                     'transaction_amount' => (float) $total,
                     'payment_method_id'  => 'pix',
-                    'payer'              => ['email' => 'cliente@kiosk.local'],
+                    'payer'              => ['email' => ns()->option->get('ns_store_email', 'contato@kiosk.com.br')],
                     'description'        => 'Kiosk — Pedido #' . $order->id,
                     'external_reference' => $externalRef,
                 ];
