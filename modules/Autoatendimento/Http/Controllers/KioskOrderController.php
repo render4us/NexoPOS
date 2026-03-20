@@ -405,16 +405,13 @@ class KioskOrderController extends Controller
 
         $log[] = "Pagamento registrado (R$ {$order->total})";
 
-        // ── Emite NFC-e se o cliente solicitou ───────────────────────────
-        if (str_contains($order->note ?? '', 'Solicita NF-e')) {
+        // ── Emite NFC-e somente se houver CPF informado ──────────────────
+        if (preg_match('/CPF: (\d{11})/', $order->note ?? '', $m)) {
             try {
-                $cpfNota = null;
-                if (preg_match('/CPF: (\d{11})/', $order->note ?? '', $m)) {
-                    $cpfNota = $m[1];
-                }
+                $cpfNota = $m[1];
                 if (class_exists(\Modules\NotaFiscal\Services\NfceService::class)) {
                     app(\Modules\NotaFiscal\Services\NfceService::class)->emitir($order, $cpfNota);
-                    $log[] = 'NFC-e emitida' . ($cpfNota ? " (CPF: {$cpfNota})" : '');
+                    $log[] = "NFC-e emitida (CPF: {$cpfNota})";
                 }
             } catch (\Throwable $e) {
                 Log::warning('[Kiosk] Falha ao emitir NFC-e', ['error' => $e->getMessage()]);
