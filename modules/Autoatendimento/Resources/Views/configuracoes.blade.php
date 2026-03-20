@@ -14,7 +14,7 @@
             <a href="{{ route('kiosk.index') }}" target="_blank"
                class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
                       border border-input-edge bg-input-button hover:bg-input-button-hover text-primary transition-colors">
-                <i class="las la-external-link-alt text-base"></i>
+                <i class="fal fa-arrow-up-right-from-square text-base"></i>
                 {{ __('Abrir Kiosk') }}
             </a>
         </div>
@@ -22,7 +22,7 @@
         {{-- Mensagem de sucesso --}}
         @if (session('success'))
             <div class="flex items-center gap-3 border border-success-secondary bg-success-primary rounded-lg mb-6 px-4 py-3">
-                <i class="las la-check-circle text-2xl text-success-tertiary flex-shrink-0"></i>
+                <i class="fal fa-circle-check text-2xl text-success-tertiary flex-shrink-0"></i>
                 <p class="text-success-tertiary text-sm">{{ session('success') }}</p>
             </div>
         @endif
@@ -30,13 +30,13 @@
         <form method="POST"
               action="{{ route('autoatendimento.configuracoes.salvar') }}"
               enctype="multipart/form-data"
-              class="space-y-6 max-w-3xl pb-10">
+              class="kiosk-config-form max-w-3xl pb-10">
             @csrf
 
             {{-- ── Controle ─────────────────────────────────────────────── --}}
             <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
                 <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
-                    <i class="las la-sliders-h text-secondary"></i>
+                    <i class="fal fa-sliders text-secondary"></i>
                     <h2 class="text-sm font-semibold text-primary">{{ __('Controle') }}</h2>
                 </div>
                 <div class="ns-box-body p-4 space-y-4">
@@ -78,7 +78,7 @@
             {{-- ── Aparência ────────────────────────────────────────────── --}}
             <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
                 <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
-                    <i class="las la-palette text-secondary"></i>
+                    <i class="fal fa-palette text-secondary"></i>
                     <h2 class="text-sm font-semibold text-primary">{{ __('Aparência') }}</h2>
                 </div>
                 <div class="ns-box-body p-4 space-y-4">
@@ -97,6 +97,9 @@
                                    placeholder="Como prefere seu pedido?"
                                    class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary">
                         </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div>
                             <label class="block text-sm font-medium text-primary mb-1">{{ __('Cor primária') }}</label>
                             <div class="flex items-center gap-3">
@@ -109,10 +112,24 @@
                                        class="flex-1 border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none"
                                        readonly>
                             </div>
-                            <p class="text-xs text-secondary mt-1">Usada nos botões, destaques e cabeçalhos do kiosk.</p>
+                            <p class="text-xs text-secondary mt-1">Cabeçalhos, fundos e splash screen.</p>
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-primary mb-1">{{ __('Cor da sidebar de categorias') }}</label>
+                            <label class="block text-sm font-medium text-primary mb-1">{{ __('Cor secundária') }}</label>
+                            <div class="flex items-center gap-3">
+                                <input type="color" name="cor_secundaria"
+                                       value="{{ old('cor_secundaria', $setting->cor_secundaria ?? '#f59e0b') }}"
+                                       class="h-10 w-16 rounded-lg border border-input-edge cursor-pointer"
+                                       data-sync-text="text_cor_secundaria">
+                                <input type="text" id="text_cor_secundaria"
+                                       value="{{ old('cor_secundaria', $setting->cor_secundaria ?? '#f59e0b') }}"
+                                       class="flex-1 border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none"
+                                       readonly>
+                            </div>
+                            <p class="text-xs text-secondary mt-1">Badges de preço e destaques de valor.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-1">{{ __('Cor da sidebar') }}</label>
                             <div class="flex items-center gap-3">
                                 <input type="color" name="cor_sidebar"
                                        value="{{ old('cor_sidebar', $setting->cor_sidebar ?? '#111116') }}"
@@ -123,7 +140,7 @@
                                        class="flex-1 border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none"
                                        readonly>
                             </div>
-                            <p class="text-xs text-secondary mt-1">Fundo da barra lateral de categorias no menu do kiosk.</p>
+                            <p class="text-xs text-secondary mt-1">Fundo da barra lateral de categorias.</p>
                         </div>
                     </div>
 
@@ -181,7 +198,7 @@
                             @if($setting->video_url)
                             <div class="flex items-center gap-3 p-2 bg-box-elevation-background border border-box-edge rounded-lg">
                                 <div class="w-12 h-12 rounded bg-gray-200 flex items-center justify-center flex-shrink-0">
-                                    <i class="las la-film text-2xl text-secondary"></i>
+                                    <i class="fal fa-film text-2xl text-secondary"></i>
                                 </div>
                                 <div class="flex-1 min-w-0">
                                     <p class="text-xs font-medium text-primary truncate">Vídeo atual</p>
@@ -213,42 +230,52 @@
                         </div>
 
                     </div>
-                </div>
-            </div>
 
-            {{-- ── Preview ──────────────────────────────────────────────── --}}
-            <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
-                <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
-                    <i class="las la-eye text-secondary"></i>
-                    <h2 class="text-sm font-semibold text-primary">{{ __('Pré-visualização') }}</h2>
-                </div>
-                <div class="ns-box-body p-4">
-                    <div class="rounded-xl overflow-hidden shadow-inner"
-                         style="background: {{ $setting->cor_primaria }}; aspect-ratio: 9/5; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px;">
-                        @if($setting->logo_url)
-                            <img src="{{ $setting->logo_url }}" alt="Logo" class="h-12 object-contain">
-                        @endif
-                        <div class="text-center text-white">
-                            <p class="font-black text-2xl">{{ $setting->titulo }}</p>
-                            <p class="text-white/70">{{ $setting->subtitulo }}</p>
+                    {{-- Banner do cardápio --}}
+                    <div class="space-y-2">
+                        <label class="block text-sm font-medium text-primary">
+                            {{ __('Banner do cardápio') }}
+                            <span class="text-xs text-secondary ml-1">(PNG, JPG, WebP, AVIF — máx. 4 MB — exibido acima do cardápio)</span>
+                        </label>
+
+                        @if($setting->banner_url)
+                        <div class="flex items-center gap-3 p-2 bg-box-elevation-background border border-box-edge rounded-lg">
+                            <img src="{{ $setting->banner_url }}" alt="Banner atual"
+                                 class="h-14 w-auto object-cover rounded">
+                            <div class="flex-1 min-w-0">
+                                <p class="text-xs font-medium text-primary truncate">Banner atual</p>
+                                <p class="text-xs text-secondary truncate">{{ $setting->banner_url }}</p>
+                            </div>
                         </div>
-                        <div class="flex gap-3">
-                            <div class="bg-white rounded-xl px-5 py-3 text-center">
-                                <p class="font-bold text-sm" style="color: {{ $setting->cor_primaria }};">🍽️ Comer Aqui</p>
-                            </div>
-                            <div class="bg-white rounded-xl px-5 py-3 text-center">
-                                <p class="font-bold text-sm" style="color: {{ $setting->cor_primaria }};">🥡 Para Levar</p>
-                            </div>
+                        @endif
+
+                        <div>
+                            <label class="block text-xs font-medium text-secondary mb-1">{{ __('Enviar novo arquivo') }}</label>
+                            <input type="file" name="banner_arquivo" accept=".png,.jpg,.jpeg,.webp,.avif"
+                                   class="block w-full text-sm text-secondary
+                                          file:mr-3 file:py-2 file:px-4 file:rounded-lg
+                                          file:border file:border-input-edge file:bg-input-button
+                                          file:text-primary file:text-sm file:cursor-pointer
+                                          hover:file:bg-input-button-hover">
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-medium text-secondary mb-1">{{ __('Ou informe uma URL externa') }}</label>
+                            <input type="text" name="banner_url"
+                                   value="{{ old('banner_url') }}"
+                                   placeholder="https://..."
+                                   class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary">
+                            <p class="text-xs text-secondary mt-1">Deixe em branco para não exibir banner.</p>
                         </div>
                     </div>
-                    <p class="text-xs text-secondary mt-2 text-center">Salve as configurações para atualizar o preview.</p>
+
                 </div>
             </div>
 
             {{-- ── Impressora Térmica ────────────────────────────────────── --}}
             <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
                 <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
-                    <i class="las la-print text-secondary"></i>
+                    <i class="fal fa-print text-secondary"></i>
                     <h2 class="text-sm font-semibold text-primary">{{ __('Impressora Térmica (Rede)') }}</h2>
                 </div>
                 <div class="ns-box-body p-4 space-y-4">
@@ -295,7 +322,7 @@
                     {{-- Kiosk Server (impressora em outra sub-rede) --}}
                     <div class="border border-box-edge rounded-lg p-4 space-y-2 bg-box-background">
                         <p class="text-sm font-semibold text-primary flex items-center gap-2">
-                            <i class="las la-network-wired"></i>
+                            <i class="fal fa-network-wired"></i>
                             {{ __('Kiosk Server (impressora em outra sub-rede)') }}
                         </p>
                         <p class="text-xs text-secondary">
@@ -314,7 +341,7 @@
 
                     {{-- Dica de compatibilidade --}}
                     <div class="flex items-start gap-2 text-xs text-secondary">
-                        <i class="las la-info-circle mt-0.5 flex-shrink-0"></i>
+                        <i class="fal fa-circle-info mt-0.5 flex-shrink-0"></i>
                         <span>
                             Compatível com impressoras térmicas ESC/POS (Epson, Bematech, Elgin, Daruma, etc.)
                             conectadas à rede local. Certifique-se de que o servidor PHP consegue acessar o IP da impressora
@@ -327,7 +354,7 @@
             {{-- ── Impressora de Cozinha ─────────────────────────────────── --}}
             <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
                 <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
-                    <i class="las la-utensils text-secondary"></i>
+                    <i class="fal fa-utensils text-secondary"></i>
                     <h2 class="text-sm font-semibold text-primary">{{ __('Impressora de Cozinha') }}</h2>
                 </div>
                 <div class="ns-box-body p-4 space-y-4">
@@ -379,7 +406,7 @@
             {{-- ── Teste de Pagamento ────────────────────────────────────── --}}
             <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
                 <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
-                    <i class="las la-flask text-secondary"></i>
+                    <i class="fal fa-flask text-secondary"></i>
                     <h2 class="text-sm font-semibold text-primary">{{ __('Teste de Pagamento') }}</h2>
                     <span class="ml-auto text-xs px-2 py-0.5 rounded border border-error-secondary bg-error-primary text-error-tertiary">
                         Somente desenvolvimento
@@ -405,7 +432,7 @@
                     {{-- Painel de simulação — sempre visível, botão desabilitado quando inativo --}}
                     <div class="border border-box-edge rounded-lg p-4 space-y-3 {{ $setting->teste_pagamento_ativo ? '' : 'opacity-50' }}">
                         <p class="text-xs text-secondary flex items-center gap-2">
-                            <i class="las la-exclamation-triangle text-error-tertiary text-base"></i>
+                            <i class="fal fa-triangle-exclamation text-error-tertiary text-base"></i>
                             Simula o retorno de pagamento aprovado do Mercado Pago para um pedido kiosk pendente.
                             Registra o pagamento, imprime o cupom (se configurado) e dispara o WhatsApp.
                         </p>
@@ -426,7 +453,7 @@
                                     class="inline-flex items-center gap-2 px-5 py-2 border border-input-edge bg-input-button
                                            hover:bg-input-button-hover text-primary rounded-lg font-semibold text-sm
                                            transition-colors whitespace-nowrap disabled:opacity-40 disabled:cursor-not-allowed">
-                                <i class="las la-play-circle text-base"></i>
+                                <i class="fal fa-circle-play text-base"></i>
                                 Simular Pagamento Aprovado
                             </button>
                         </div>
@@ -446,7 +473,7 @@
 
             {{-- ── Informações --}}
             <div class="flex items-start gap-3 border border-info-secondary bg-info-primary rounded-lg px-4 py-3">
-                <i class="las la-info-circle text-xl text-info-tertiary flex-shrink-0 mt-0.5"></i>
+                <i class="fal fa-circle-info text-xl text-info-tertiary flex-shrink-0 mt-0.5"></i>
                 <div class="text-sm text-info-tertiary">
                     <p class="font-semibold mb-1">Pré-requisitos para o kiosk funcionar:</p>
                     <ul class="list-disc list-inside space-y-0.5">
@@ -463,7 +490,7 @@
                         class="inline-flex items-center gap-2 px-6 py-3 bg-info-tertiary text-white rounded-lg
                                font-semibold text-sm hover:opacity-90 focus:outline-none focus:ring-2
                                focus:ring-info-secondary transition-opacity">
-                    <i class="las la-save text-base"></i>
+                    <i class="fal fa-floppy-disk text-base"></i>
                     {{ __('Salvar Configurações') }}
                 </button>
             </div>
@@ -474,6 +501,14 @@
 @endsection
 
 @section('layout.dashboard.header')
+<style>
+    .kiosk-config-form > .ns-box + .ns-box,
+    .kiosk-config-form > .ns-box + div,
+    .kiosk-config-form > div + .ns-box,
+    .kiosk-config-form > div + div {
+        margin-top: 2rem;
+    }
+</style>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
 
@@ -495,7 +530,7 @@
         if (btnSimular) {
             btnSimular.addEventListener('click', async function () {
                 btnSimular.disabled = true;
-                btnSimular.innerHTML = '<i class="las la-spinner la-spin text-base"></i> Simulando...';
+                btnSimular.innerHTML = '<i class="fal fa-spinner fa-spin text-base"></i> Simulando...';
                 resultado.className = 'hidden text-sm rounded-lg px-3 py-2 border';
                 resultado.textContent = '';
 
@@ -534,7 +569,7 @@
                     resultado.textContent = '❌ Erro de comunicação: ' + err.message;
                 } finally {
                     btnSimular.disabled = false;
-                    btnSimular.innerHTML = '<i class="las la-play-circle text-base"></i> Simular Pagamento Aprovado';
+                    btnSimular.innerHTML = '<i class="fal fa-circle-play text-base"></i> Simular Pagamento Aprovado';
                 }
             });
         }

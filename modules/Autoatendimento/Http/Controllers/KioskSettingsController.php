@@ -30,11 +30,14 @@ class KioskSettingsController extends Controller
             'titulo'           => 'required|string|max:100',
             'subtitulo'        => 'required|string|max:200',
             'cor_primaria'     => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
+            'cor_secundaria'   => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'cor_sidebar'      => ['required', 'regex:/^#[0-9A-Fa-f]{6}$/'],
             'logo_url'         => 'nullable|string|max:500',
             'logo_arquivo'     => 'nullable|file|mimes:png,jpg,jpeg,svg,webp|max:2048',
             'video_url'        => 'nullable|string|max:500',
             'video_arquivo'    => 'nullable|file|mimes:mp4,webm|max:51200',
+            'banner_url'       => 'nullable|string|max:500',
+            'banner_arquivo'   => 'nullable|file|mimes:png,jpg,jpeg,webp,avif|max:4096',
             'operator_user_id' => 'required|integer|exists:nexopos_users,id',
             'reset_timeout'    => 'required|integer|min:5|max:120',
             'printer_enabled'   => 'boolean',
@@ -63,6 +66,17 @@ class KioskSettingsController extends Controller
             $logoUrl = $request->input('logo_url') ?: $setting->logo_url;
         }
 
+        // ── Banner ──────────────────────────────────────────────────────────
+        if ($request->hasFile('banner_arquivo')) {
+            if ($setting->banner_url && str_starts_with($setting->banner_url, '/storage/kiosk/')) {
+                Storage::disk('public')->delete('kiosk/' . basename($setting->banner_url));
+            }
+            $path = $request->file('banner_arquivo')->store('kiosk', 'public');
+            $bannerUrl = Storage::url($path);
+        } else {
+            $bannerUrl = $request->input('banner_url') ?: $setting->banner_url;
+        }
+
         // ── Vídeo ───────────────────────────────────────────────────────────
         if ($request->hasFile('video_arquivo')) {
             if ($setting->video_url && str_starts_with($setting->video_url, '/storage/kiosk/')) {
@@ -82,9 +96,11 @@ class KioskSettingsController extends Controller
             'titulo'           => $request->input('titulo'),
             'subtitulo'        => $request->input('subtitulo'),
             'cor_primaria'     => $request->input('cor_primaria'),
+            'cor_secundaria'   => $request->input('cor_secundaria'),
             'cor_sidebar'      => $request->input('cor_sidebar'),
             'logo_url'         => $logoUrl,
             'video_url'        => $videoUrl,
+            'banner_url'       => $bannerUrl,
             'operator_user_id' => $request->input('operator_user_id'),
             'reset_timeout'    => $request->input('reset_timeout'),
             'printer_enabled'  => $request->boolean('printer_enabled'),

@@ -76,9 +76,9 @@
       "_runtime-core.esm-bundler-Bzup5G8m.js"
     ]
   },
-  "_ns-prompt-popup-!~{00S}~.js": {
+  "_ns-prompt-popup-!~{00T}~.js": {
     "file": "assets/ns-prompt-popup-CNox9BoV.css",
-    "src": "_ns-prompt-popup-!~{00S}~.js"
+    "src": "_ns-prompt-popup-!~{00T}~.js"
   },
   "_ns-prompt-popup-rCDsLbUR.js": {
     "file": "assets/ns-prompt-popup-rCDsLbUR.js",
@@ -165,6 +165,11 @@
   "resources/scss/dark.scss": {
     "file": "assets/dark-CoOP5HY7.css",
     "src": "resources/scss/dark.scss",
+    "isEntry": true
+  },
+  "resources/scss/fontawesome.scss": {
+    "file": "assets/fontawesome-CjGNbqgR.css",
+    "src": "resources/scss/fontawesome.scss",
     "isEntry": true
   },
   "resources/scss/fonts.scss": {

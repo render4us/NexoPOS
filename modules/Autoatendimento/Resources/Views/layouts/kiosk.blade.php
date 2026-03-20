@@ -6,8 +6,16 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $setting->titulo ?? 'Autoatendimento' }}</title>
 
+    {{-- Google Fonts: Outfit --}}
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap" rel="stylesheet">
+
     {{-- Tailwind CDN --}}
     <script src="https://cdn.tailwindcss.com"></script>
+
+    {{-- Font Awesome 7 Pro --}}
+    @vite(['resources/scss/fontawesome.scss'])
 
     {{-- Alpine.js --}}
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
@@ -22,6 +30,11 @@
         [x-cloak] { display: none !important; }
 
         body {
+            font-family: 'Outfit', sans-serif;
+            font-optical-sizing: auto;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            text-rendering: optimizeLegibility;
             overscroll-behavior: none;
             -webkit-tap-highlight-color: transparent;
             user-select: none;

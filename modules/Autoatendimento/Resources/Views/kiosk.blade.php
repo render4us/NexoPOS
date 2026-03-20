@@ -14,14 +14,36 @@
     transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
     cursor: pointer; border: none; background: transparent;
 }
+
+.tituloLista{
+    font-size: medium !important;
+}
+
+.tituloCategoria{
+    font-size: xx-large !important;
+}
+
 .cat-btn:active { transform: scale(0.93); }
 .cat-icon {
-    width: 68px; height: 68px; border-radius: 18px;
+    width: 52px; height: 52px; border-radius: 14px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 32px; transition: all 0.2s ease;
+    font-size: 22px; transition: all 0.2s ease;
     background: rgba(255,255,255,0.07);
 }
 .cat-btn.active .cat-icon { background: rgba(255,255,255,0.22); }
+
+/* Logo na sidebar */
+.sidebar-logo {
+    display: flex; align-items: center; justify-content: center;
+    padding: 18px 10px 12px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+    margin-bottom: 4px;
+}
+.sidebar-logo img {
+    max-width: 80px; max-height: 52px;
+    object-fit: contain; filter: brightness(0) invert(1);
+    opacity: 0.9;
+}
 /* ícone com foto de produto */
 .cat-icon-img {
     background-size: cover;
@@ -31,9 +53,9 @@
 }
 .cat-btn.active .cat-icon-img { border-color: rgba(255,255,255,0.45); }
 .cat-label {
-    font-size: 11px; font-weight: 700; text-align: center;
+    font-size: 10px; font-weight: 700; text-align: center;
     line-height: 1.2; color: rgba(255,255,255,0.4);
-    max-width: 100px; overflow: hidden;
+    max-width: 88px; overflow: hidden;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
     transition: color 0.2s ease;
 }
@@ -172,9 +194,9 @@
                 <button type="button" @click="selectMode('eat_in')"
                         class="w-full bg-white flex items-center gap-5 px-6 py-5 rounded-2xl shadow-2xl
                                active:scale-[0.97] transition-all duration-150">
-                    <div class="w-14 h-14 rounded-xl flex items-center justify-center text-3xl flex-shrink-0"
-                         style="background-color: {{ $setting->cor_primaria }}18;">
-                        🍽️
+                    <div class="w-14 h-14 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                         style="background-color: {{ $setting->cor_primaria }}18; color: {{ $setting->cor_primaria }};">
+                        <i class="fal fa-utensils"></i>
                     </div>
                     <div class="text-left flex-1">
                         <p class="font-black text-lg leading-none"
@@ -191,8 +213,8 @@
                 <button type="button" @click="selectMode('takeaway')"
                         class="w-full flex items-center gap-5 px-6 py-5 rounded-2xl border-2 border-white/25
                                active:bg-white/10 transition-colors duration-150">
-                    <div class="w-14 h-14 rounded-xl bg-white/14 flex items-center justify-center text-3xl flex-shrink-0">
-                        🥡
+                    <div class="w-14 h-14 rounded-xl bg-white/14 flex items-center justify-center text-2xl text-white flex-shrink-0">
+                        <i class="fal fa-bag-shopping"></i>
                     </div>
                     <div class="text-left flex-1">
                         <p class="font-black text-lg text-white leading-none">Para Levar</p>
@@ -216,25 +238,32 @@
     <div x-show="step === 'menu'" class="flex flex-col h-screen" style="background:#f4f4f6;">
 
         {{-- Header compacto --}}
-        <header class="flex-shrink-0 z-40"
+        <header class="flex-shrink-0 z-40 relative"
                 style="background: linear-gradient(135deg, {{ $setting->cor_primaria }} 0%, {{ $setting->cor_primaria }}dd 100%);
                        box-shadow: 0 2px 16px rgba(0,0,0,0.18);">
-            <div class="flex items-center gap-3 px-4 py-3">
-                @if($setting->logo_url)
-                <img src="{{ $setting->logo_url }}" alt="" class="h-9 object-contain flex-shrink-0">
-                <div class="w-px h-7 bg-white/20 flex-shrink-0"></div>
-                @endif
+            <div class="flex items-center px-4 py-3">
+                {{-- Título + modo (esquerda) --}}
                 <div class="flex-1 min-w-0">
                     <p class="font-black text-white text-base leading-none">{{ $setting->titulo }}</p>
                     <p class="text-white/55 text-[11px] mt-0.5 font-medium">
-                        <span x-show="mode === 'eat_in'">🍽️ &nbsp;Mesa no local</span>
-                        <span x-show="mode === 'takeaway'">🥡 &nbsp;Para levar</span>
+                        <span x-show="mode === 'eat_in'"><i class="fal fa-utensils"></i> &nbsp;Mesa no local</span>
+                        <span x-show="mode === 'takeaway'"><i class="fal fa-bag-shopping"></i> &nbsp;Para levar</span>
                     </p>
                 </div>
+
+                {{-- Logo centralizado e flutuante --}}
+                @if($setting->logo_url)
+                <div class="absolute inset-x-0 top-10 bottom-0 flex items-center justify-center pointer-events-none">
+                    <img src="{{ $setting->logo_url }}" alt="{{ $setting->titulo }}"
+                         class="h-40 object-contain drop-shadow-md">
+                </div>
+                @endif
+
+                {{-- Botão sair (direita) --}}
                 <button type="button" @click="step = 'splash'; resetQuantidades()"
                         class="flex-shrink-0 h-9 px-4 rounded-full text-white/80 text-sm font-semibold
                                border border-white/25 active:bg-white/20 transition-colors">
-                    ✕ Sair
+                    <i class="fal fa-xmark"></i> Sair
                 </button>
             </div>
         </header>
@@ -244,16 +273,16 @@
 
             {{-- ── Sidebar de categorias ── --}}
             <aside id="cat-sidebar" class="flex-shrink-0 overflow-y-auto no-scrollbar"
-                   style="width:120px; background:{{ $setting->cor_sidebar ?? '#111116' }};">
+                   style="width:100px; background:{{ $setting->cor_sidebar ?? '#111116' }};">
 
                 {{-- Wrapper centraliza verticalmente quando cabe; expande quando transborda --}}
-                <div class="flex flex-col gap-1 py-4 min-h-full justify-center">
+                <div class="flex flex-col gap-1 py-3 min-h-full justify-center">
 
                     {{-- "Todos" --}}
                     <button type="button" @click="selectedCategory = null"
                             :class="selectedCategory === null ? 'active' : ''"
                             class="cat-btn">
-                        <div class="cat-icon">🏠</div>
+                        <div class="cat-icon"><i class="fal fa-grid-4"></i></div>
                         <span class="cat-label">Todos</span>
                     </button>
 
@@ -280,9 +309,18 @@
             {{-- ── Área de produtos ── --}}
             <main class="flex-1 overflow-y-auto no-scrollbar" style="padding-bottom: 90px;">
 
+                {{-- Banner do cardápio --}}
+                @if($setting->banner_url)
+                <div class="px-3 pt-3">
+                    <img src="{{ $setting->banner_url }}" alt="Banner"
+                         class="w-full rounded-2xl object-cover"
+                         style="max-height:160px;">
+                </div>
+                @endif
+
                 {{-- Cabeçalho da categoria --}}
                 <div class="px-3 pt-3 pb-2">
-                    <h2 class="font-black text-gray-800 text-base leading-snug"
+                    <h2 class="font-black text-gray-800 tituloCategoria text-base leading-snug"
                         x-text="selectedCategory
                             ? (categories.find(c => c.id === selectedCategory)?.name ?? '')
                             : 'Cardápio Completo'"></h2>
@@ -291,7 +329,7 @@
                 </div>
 
                 {{-- Loading --}}
-                <div x-show="loading" class="grid grid-cols-4 gap-2 px-3">
+                <div x-show="loading" class="grid grid-cols-3 gap-4 px-3 pt-2">
                     <template x-for="n in [1,2,3,4,5,6,7,8]" :key="n">
                         <div class="prod-card">
                             <div class="w-full shimmer" style="aspect-ratio:1/1;"></div>
@@ -307,13 +345,13 @@
                 {{-- Sem produtos --}}
                 <div x-show="!loading && filteredProducts.length === 0"
                      class="flex flex-col items-center justify-center h-52 text-gray-300 gap-2">
-                    <span class="text-5xl">🍽️</span>
+                    <span class="text-5xl"><i class="fal fa-utensils"></i></span>
                     <p class="text-sm font-medium">Nenhum item disponível</p>
                 </div>
 
                 {{-- Grid --}}
                 <div x-show="!loading && filteredProducts.length > 0"
-                     class="grid grid-cols-4 gap-2 px-3">
+                     class="grid grid-cols-3 gap-4 px-3 pt-2">
                     <template x-for="prod in filteredProducts" :key="prod.id">
                         <div @click="openProductModal(prod)" class="prod-card">
 
@@ -326,9 +364,10 @@
 
                                 {{-- Gradiente + preço na imagem --}}
                                 <div class="absolute inset-x-0 bottom-0 h-14"
-                                     style="background:linear-gradient(to top,rgba(0,0,0,0.65) 0%,transparent 100%);"></div>
-                                <p class="absolute bottom-2 left-2.5 text-white font-black text-sm drop-shadow"
-                                   x-text="'R$ ' + prod.price.toFixed(2).replace('.', ',')"></p>
+                                     style="background:linear-gradient(to top,rgba(0,0,0,0.55) 0%,transparent 100%);"></div>
+                                <span class="absolute bottom-2 left-2 text-white font-black text-[11px] px-2 py-0.5 rounded-lg shadow"
+                                      style="background-color: {{ $setting->cor_secundaria ?? '#f59e0b' }};"
+                                      x-text="'R$ ' + prod.price.toFixed(2).replace('.', ',')"></span>
 
                                 {{-- Badge de quantidade --}}
                                 <template x-if="quantities[prod.id] > 0">
@@ -341,26 +380,22 @@
                             </div>
 
                             {{-- Info --}}
-                            <div class="p-2.5 flex flex-col gap-2 flex-1">
-                                <h3 class="text-[11px] font-bold text-gray-800 leading-snug line-clamp-2 flex-1"
+                            <div class="p-2.5 flex items-end justify-between gap-1 flex-1">
+                                <h3 class="tituloLista font-bold text-gray-800 leading-snug line-clamp-2 flex-1"
+                                    style="font-family:'Outfit',sans-serif;font-weight:600;"
                                     x-text="prod.name"></h3>
 
-                                {{-- Botão Adicionar / Editando --}}
+                                {{-- Indicador de quantidade / ícone + --}}
                                 <template x-if="quantities[prod.id] > 0">
-                                    <div class="flex items-center justify-between rounded-xl px-3 py-2
-                                                text-[11px] font-bold"
-                                         :style="'background-color: {{ $setting->cor_primaria }}18; color: {{ $setting->cor_primaria }};'">
-                                        <span x-text="quantities[prod.id] + ' no pedido'"></span>
-                                        <span>✎</span>
-                                    </div>
+                                    <div class="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center
+                                                text-[11px] font-black text-white anim-badge"
+                                         style="background-color: {{ $setting->cor_primaria }};"
+                                         x-text="quantities[prod.id]"></div>
                                 </template>
                                 <template x-if="!quantities[prod.id]">
-                                    <div class="flex items-center justify-center gap-1.5 rounded-xl py-2
-                                                text-[11px] font-black text-white"
-                                         style="background-color: {{ $setting->cor_primaria }};">
-                                        <span class="text-base leading-none font-black">+</span>
-                                        <span>Adicionar</span>
-                                    </div>
+                                    <div class="flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center
+                                                text-base font-black text-white/80"
+                                         style="background-color: rgba(0,0,0,0.15);">+</div>
                                 </template>
                             </div>
                         </div>
@@ -425,11 +460,10 @@
                  x-transition:leave="transition ease-in duration-150"
                  x-transition:leave-start="opacity-100 scale-100"
                  x-transition:leave-end="opacity-0 scale-95"
-                 class="modal-panel relative w-full rounded-2xl overflow-hidden shadow-2xl flex"
-                 style="max-width:560px; max-height:320px;">
+                 class="modal-panel relative w-full max-w-2xl max-h-[420px] rounded-2xl overflow-hidden shadow-2xl flex">
 
                 <template x-if="modalProduct">
-                    <div class="flex w-full">
+                    <div class="flex p-4 w-full">
 
                         {{-- Imagem à esquerda — quadrada, completa --}}
                         <div class="flex-shrink-0 relative" style="width:260px;">
@@ -455,18 +489,20 @@
                                     class="absolute top-3 right-3 w-8 h-8 rounded-full bg-gray-100
                                            text-gray-500 flex items-center justify-center text-sm
                                            active:bg-gray-200 transition-colors">
-                                ✕
+                                <i class="fal fa-xmark"></i>
                             </button>
 
                             {{-- Nome + preço + descrição --}}
                             <div class="pr-8">
-                                <h2 class="text-base font-black text-gray-900 leading-snug line-clamp-2"
+                                <h2 class="text-2xl font-black text-gray-900 leading-snug line-clamp-2"
+                                    style="font-family:'Outfit',sans-serif;font-weight:600;"
                                     x-text="modalProduct.name"></h2>
-                                <p class="text-xl font-black mt-1"
-                                   style="color: {{ $setting->cor_primaria }};"
-                                   x-text="'R$ ' + modalProduct.price.toFixed(2).replace('.', ',')"></p>
+                                <span class="inline-block mt-2 text-white font-black text-base px-3 py-1 rounded-lg shadow"
+                                      style="background-color: {{ $setting->cor_secundaria ?? '#f59e0b' }};"
+                                      x-text="'R$ ' + modalProduct.price.toFixed(2).replace('.', ',')"></span>
                                 <template x-if="modalProduct.description">
                                     <p class="text-gray-400 text-xs mt-2 leading-relaxed line-clamp-3"
+                                       style="font-family:'Outfit',sans-serif;font-weight:400;"
                                        x-text="modalProduct.description"></p>
                                 </template>
                             </div>
@@ -503,13 +539,13 @@
                                             class="flex-shrink-0 px-3 py-3 rounded-xl font-bold text-xs
                                                    border-2 border-gray-200 text-gray-500
                                                    active:bg-gray-50 transition-colors">
-                                        🗑
+                                        <i class="fal fa-trash"></i>
                                     </button>
                                 </template>
                                 <button type="button" @click="addFromModal()"
                                         class="flex-1 py-3 rounded-xl font-black text-white text-sm
                                                active:scale-95 transition-transform"
-                                        style="background-color: {{ $setting->cor_primaria }};"
+                                        style="background-color: #16a34a; box-shadow: 0 4px 12px rgba(22,163,74,0.3);"
                                         x-text="quantities[modalProduct.id] > 0 ? 'Atualizar pedido' : 'Adicionar ao pedido'">
                                 </button>
                             </div>
@@ -533,7 +569,7 @@
                     <button type="button" @click="closeCart()"
                             class="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center
                                    text-gray-500 text-lg active:bg-gray-200">
-                        ✕
+                        <i class="fal fa-xmark"></i>
                     </button>
                 </div>
 
@@ -553,6 +589,11 @@
                             <p class="font-black text-base flex-shrink-0"
                                style="color: {{ $setting->cor_primaria }};"
                                x-text="'R$ ' + item.total.toFixed(2).replace('.', ',')"></p>
+                            <button type="button"
+                                    @click="quantities[item.id] = 0"
+                                    class="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-red-400 hover:bg-red-50 active:scale-90 transition-transform">
+                                <i class="fal fa-trash text-sm"></i>
+                            </button>
                         </div>
                     </template>
                 </div>
@@ -593,7 +634,7 @@
                 <button type="button" @click="step = 'menu'; showCart = true"
                         class="mr-4 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center
                                active:bg-white/30 text-xl">
-                    ←
+                    <i class="fal fa-arrow-left"></i>
                 </button>
                 <h1 class="font-black text-xl flex-1 text-center">Finalizar Pedido</h1>
                 <div class="w-10"></div>
@@ -606,8 +647,8 @@
             <div class="bg-white rounded-2xl overflow-hidden"
                  style="box-shadow:0 2px 10px rgba(0,0,0,0.06);">
                 <div class="px-4 py-3 border-b border-gray-50 flex items-center gap-2">
-                    <span class="text-base">📋</span>
-                    <h2 class="font-bold text-gray-800">Resumo do Pedido</h2>
+                    <i class="fa-light fa-bell-concierge"></i>
+                    <h2 class="font-bold text-xl text-gray-800">Resumo do Pedido</h2>
                 </div>
                 <div class="px-4">
                     <template x-for="item in cartItems" :key="item.id">
@@ -635,17 +676,49 @@
             {{-- WhatsApp --}}
             <div class="bg-white rounded-2xl p-4"
                  style="box-shadow:0 2px 10px rgba(0,0,0,0.06);">
-                <label class="block font-bold text-gray-800 mb-2 text-sm">
-                    📱 WhatsApp
-                    <span class="text-gray-400 text-xs font-normal ml-1">(opcional)</span>
+                <label class="block font-bold text-gray-800 mb-3 text-xl">
+                    <i class="fa-brands fa-whatsapp text-green-500"></i> WhatsApp
+                    <p class="text-gray-400 text-xs font-normal mt-0.5">(usado para avisar sobre seu pedido)</p>
                 </label>
-                <input type="tel"
-                       x-model="phone"
-                       placeholder="(99) 99999-9999"
-                       class="w-full border border-gray-200 rounded-xl px-4 py-3 text-base
-                              focus:outline-none focus:ring-2 transition-shadow"
-                       style="--tw-ring-color: {{ $setting->cor_primaria }}40;"
-                       inputmode="tel">
+
+                {{-- Display do número --}}
+                <div class="w-full rounded-2xl border-2 px-4 py-3 text-center mb-3 transition-colors"
+                     :style="phoneValido
+                         ? 'border-color: #16a34a; box-shadow: 0 0 0 4px rgba(22,163,74,0.1);'
+                         : 'border-color:#e5e7eb;'">
+                    <p class="text-xs text-gray-400 mb-0.5 font-semibold uppercase tracking-wider">Celular</p>
+                    <p class="text-2xl font-black tracking-widest text-gray-800 font-mono min-h-[2rem]"
+                       x-text="phoneFormatado || '(__) _____-____'"></p>
+                </div>
+
+                {{-- Teclado numérico --}}
+                <div class="grid grid-cols-3 gap-2">
+                    <template x-for="digit in [1,2,3,4,5,6,7,8,9]" :key="digit">
+                        <button type="button" @click="phonePressDigit(digit)"
+                                :disabled="phoneDigits.length >= 11"
+                                class="h-14 rounded-2xl font-black text-xl text-gray-800 bg-gray-50
+                                       border border-gray-100 active:scale-95 transition-transform
+                                       disabled:opacity-35"
+                                x-text="digit"></button>
+                    </template>
+                    <button type="button" @click="phoneBackspace()"
+                            class="h-14 rounded-2xl font-bold text-lg text-gray-500 bg-gray-50
+                                   border border-gray-100 active:scale-95 transition-transform">
+                        <i class="fal fa-delete-left"></i>
+                    </button>
+                    <button type="button" @click="phonePressDigit(0)"
+                            :disabled="phoneDigits.length >= 11"
+                            class="h-14 rounded-2xl font-black text-xl text-gray-800 bg-gray-50
+                                   border border-gray-100 active:scale-95 transition-transform
+                                   disabled:opacity-35">
+                        0
+                    </button>
+                    <button type="button" @click="phoneDigits = []; phone = ''"
+                            class="h-14 rounded-2xl font-bold text-xs text-gray-400 bg-gray-50
+                                   border border-gray-100 active:scale-95 transition-transform">
+                        Limpar
+                    </button>
+                </div>
             </div>
 
             {{-- Nota Fiscal --}}
@@ -661,38 +734,60 @@
                 </div>
                 <input type="checkbox" x-model="nfe" class="hidden">
                 <div class="flex-1">
-                    <p class="font-bold text-gray-800 text-sm">🧾 Solicitar Nota Fiscal</p>
-                    <p class="text-xs text-gray-400 mt-0.5">Emitida automaticamente após o pagamento</p>
-                </div>
+                    <p class="font-bold text-gray-800 text-xs"><i class="fa-sharp fa-light fa-file-invoice-dollar"></i> Desejo Nota Fiscal</p></div>
             </label>
 
             {{-- Forma de pagamento --}}
             <div class="bg-white rounded-2xl p-4"
                  style="box-shadow:0 2px 10px rgba(0,0,0,0.06);">
-                <h2 class="font-bold text-gray-800 mb-3 text-sm">💳 Forma de pagamento</h2>
+                <h2 class="font-bold text-gray-800 mb-3 text-sm"><i class="fal fa-credit-card mr-1"></i> Forma de pagamento</h2>
                 <div class="grid grid-cols-3 gap-3">
+
+                    {{-- Crédito --}}
                     <button type="button" @click="paymentType = 'credit_card'"
-                            class="py-4 rounded-xl font-bold text-sm border-2 transition-all"
+                            class="flex flex-col items-center justify-center gap-3 py-5 rounded-2xl font-bold text-sm border-2 transition-all"
                             :style="paymentType === 'credit_card'
                                 ? 'border-color: {{ $setting->cor_primaria }}; background-color: {{ $setting->cor_primaria }}14; color: {{ $setting->cor_primaria }};'
-                                : 'border-color:#e5e7eb; color:#6b7280;'">
-                        💳 Crédito
+                                : 'border-color:#e5e7eb; background-color:#f9fafb; color:#6b7280;'">
+                        <span class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-all"
+                              :style="paymentType === 'credit_card'
+                                  ? 'background-color: {{ $setting->cor_primaria }}20;'
+                                  : 'background-color:#f0f0f2;'">
+                            <i class="fal fa-credit-card"></i>
+                        </span>
+                        <span>Crédito</span>
                     </button>
+
+                    {{-- Débito --}}
                     <button type="button" @click="paymentType = 'debit_card'"
-                            class="py-4 rounded-xl font-bold text-sm border-2 transition-all"
+                            class="flex flex-col items-center justify-center gap-3 py-5 rounded-2xl font-bold text-sm border-2 transition-all"
                             :style="paymentType === 'debit_card'
                                 ? 'border-color: {{ $setting->cor_primaria }}; background-color: {{ $setting->cor_primaria }}14; color: {{ $setting->cor_primaria }};'
-                                : 'border-color:#e5e7eb; color:#6b7280;'">
-                        💳 Débito
+                                : 'border-color:#e5e7eb; background-color:#f9fafb; color:#6b7280;'">
+                        <span class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-all"
+                              :style="paymentType === 'debit_card'
+                                  ? 'background-color: {{ $setting->cor_primaria }}20;'
+                                  : 'background-color:#f0f0f2;'">
+                            <i class="fal fa-money-bill-wave"></i>
+                        </span>
+                        <span>Débito</span>
                     </button>
+
+                    {{-- Pix --}}
                     <button type="button" @click="paymentType = 'pix'"
-                            class="py-4 rounded-xl font-bold text-sm border-2 transition-all"
+                            class="flex flex-col items-center justify-center gap-3 py-5 rounded-2xl font-bold text-sm border-2 transition-all"
                             :style="paymentType === 'pix'
-                                ? 'border-color: #32BCAD; background-color: #32BCAD18; color: #32BCAD;'
-                                : 'border-color:#e5e7eb; color:#6b7280;'">
-                        <span class="block text-lg leading-none mb-0.5">⚡</span>
-                        Pix
+                                ? 'border-color: #32BCAD; background-color: #32BCAD14; color: #32BCAD;'
+                                : 'border-color:#e5e7eb; background-color:#f9fafb; color:#6b7280;'">
+                        <span class="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl transition-all"
+                              :style="paymentType === 'pix'
+                                  ? 'background-color: #32BCAD20;'
+                                  : 'background-color:#f0f0f2;'">
+                            <i class="fa-brands fa-pix"></i>
+                        </span>
+                        <span>Pix</span>
                     </button>
+
                 </div>
             </div>
         </div>
@@ -701,8 +796,7 @@
             <button type="button" @click="irParaCpfOuPagar()"
                     class="w-full py-5 rounded-2xl font-black text-xl text-white
                            active:scale-95 transition-transform"
-                    style="background-color: {{ $setting->cor_primaria }};
-                           box-shadow: 0 6px 24px {{ $setting->cor_primaria }}55;">
+                    style="background-color: #16a34a; box-shadow: 0 6px 24px rgba(22,163,74,0.4);">
                 Confirmar e Pagar
             </button>
         </div>
@@ -719,7 +813,7 @@
             <div class="flex items-center px-5 py-4">
                 <button type="button" @click="step = 'checkout'"
                         class="mr-4 w-10 h-10 rounded-full bg-white/20 flex items-center justify-center active:bg-white/30 text-xl">
-                    ←
+                    <i class="fal fa-arrow-left"></i>
                 </button>
                 <h1 class="font-black text-xl flex-1 text-center">CPF na Nota Fiscal</h1>
                 <div class="w-10"></div>
@@ -730,8 +824,8 @@
 
             <div class="text-center">
                 <div class="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mx-auto mb-3"
-                     style="background-color: {{ $setting->cor_primaria }}18;">
-                    🧾
+                     style="background-color: {{ $setting->cor_primaria }}18; color: {{ $setting->cor_primaria }};">
+                    <i class="fal fa-id-card"></i>
                 </div>
                 <h2 class="text-2xl font-black text-gray-800">CPF na nota?</h2>
                 <p class="text-gray-500 mt-1 text-sm">Digite para incluir na nota fiscal</p>
@@ -782,9 +876,8 @@
                     :disabled="!cpfValido"
                     class="w-full py-4 rounded-2xl font-black text-lg text-white
                            active:scale-95 transition-transform disabled:opacity-35"
-                    style="background-color: {{ $setting->cor_primaria }};
-                           box-shadow: 0 6px 24px {{ $setting->cor_primaria }}50;">
-                ✓ Confirmar CPF e Pagar
+                    style="background-color: #16a34a; box-shadow: 0 6px 24px rgba(22,163,74,0.4);">
+                <i class="fal fa-check mr-2"></i> Confirmar CPF e Pagar
             </button>
             <button type="button" @click="pularCpf()"
                     class="w-full py-3 rounded-2xl font-semibold text-sm text-gray-500
@@ -811,7 +904,10 @@
             <div class="w-40 h-40 rounded-full border-[5px] border-white/15 absolute"></div>
             <div class="w-40 h-40 rounded-full border-[5px] border-transparent absolute anim-spin"
                  style="border-top-color: rgba(255,255,255,0.9);"></div>
-            <span class="text-7xl anim-pulse" x-text="paymentType === 'pix' ? '📱' : '💳'"></span>
+            <span class="text-5xl text-white anim-pulse">
+                <i x-show="paymentType !== 'pix'" class="fal fa-credit-card"></i>
+                <i x-show="paymentType === 'pix'" class="fal fa-bolt"></i>
+            </span>
         </div>
 
         <div class="text-center text-white z-10">
@@ -843,7 +939,7 @@
                  style="border-left: 6px solid #22c55e;">
                 <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl font-black text-white"
                      style="background-color: #22c55e;">
-                    ✓
+                    <i class="fal fa-check"></i>
                 </div>
                 <div>
                     <p class="font-black text-gray-800 text-sm leading-tight">
@@ -871,7 +967,7 @@
                     class="flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold
                            bg-white/10 border border-white/20 text-white/70 hover:bg-white/20
                            hover:text-white transition-all backdrop-blur-sm">
-                <span class="text-base">🧪</span>
+                <i class="fal fa-flask text-base"></i>
                 Simular Pagamento Aprovado
             </button>
             <p class="text-white/30 text-xs">Modo teste — não usar em produção</p>
@@ -888,7 +984,7 @@
                 style="background: linear-gradient(135deg, #32BCAD 0%, #1a9e90 100%);
                        box-shadow:0 2px 16px rgba(0,0,0,0.18);">
             <div class="flex items-center px-5 py-4">
-                <h1 class="font-black text-xl flex-1 text-center">⚡ Pagar com Pix</h1>
+                <h1 class="font-black text-xl flex-1 text-center"><i class="fal fa-bolt mr-1"></i> Pagar com Pix</h1>
             </div>
         </header>
 
@@ -905,7 +1001,7 @@
             {{-- QR Code --}}
             <div class="bg-white rounded-2xl p-5 flex flex-col items-center gap-3 w-full"
                  style="box-shadow:0 2px 10px rgba(0,0,0,0.06);">
-                <p class="text-sm font-bold text-gray-700">📱 Abra o app do seu banco e escaneie o QR Code</p>
+                <p class="text-sm font-bold text-gray-700"><i class="fal fa-mobile-screen mr-1"></i> Abra o app do seu banco e escaneie o QR Code</p>
 
                 <div x-show="pixQrCodeBase64" class="p-3 border-2 rounded-2xl" style="border-color:#32BCAD33;">
                     <img :src="'data:image/png;base64,' + pixQrCodeBase64"
@@ -996,7 +1092,7 @@
 
         <div class="relative z-10">
             <div class="w-28 h-28 rounded-full bg-red-500 flex items-center justify-center shadow-xl shadow-red-500/25">
-                <span class="text-5xl text-white font-black">✕</span>
+                <span class="text-5xl text-white font-black"><i class="fal fa-xmark"></i></span>
             </div>
             <div class="absolute inset-0 rounded-full bg-red-400 opacity-15 blur-xl scale-125"></div>
         </div>
@@ -1046,6 +1142,7 @@ function kiosk() {
 
         // Checkout
         phone: '',
+        phoneDigits: [],
         nfe: false,
         cpf: '',
         cpfDigits: [],
@@ -1093,6 +1190,19 @@ function kiosk() {
             return this.products.reduce(
                 (sum, p) => sum + (this.quantities[p.id] || 0) * p.price, 0
             );
+        },
+
+        get phoneFormatado() {
+            const d = this.phoneDigits;
+            if (d.length === 0) return '';
+            const s = d.join('');
+            if (s.length <= 2)  return '(' + s;
+            if (s.length <= 7)  return '(' + s.slice(0,2) + ') ' + s.slice(2);
+            return '(' + s.slice(0,2) + ') ' + s.slice(2,7) + '-' + s.slice(7);
+        },
+
+        get phoneValido() {
+            return this.phoneDigits.length === 11;
         },
 
         get cpfFormatado() {
@@ -1275,6 +1385,18 @@ function kiosk() {
         irParaCheckout() {
             this.showCart = false;
             this.step = 'checkout';
+        },
+
+        // ── WhatsApp ──────────────────────────────────────────────────────
+
+        phonePressDigit(d) {
+            if (this.phoneDigits.length < 11) this.phoneDigits.push(d);
+            this.phone = this.phoneDigits.join('');
+        },
+
+        phoneBackspace() {
+            this.phoneDigits.pop();
+            this.phone = this.phoneDigits.join('');
         },
 
         // ── CPF ───────────────────────────────────────────────────────────
@@ -1468,6 +1590,7 @@ function kiosk() {
             this.step            = 'splash';
             this.mode            = null;
             this.phone           = '';
+            this.phoneDigits     = [];
             this.nfe             = false;
             this.cpf             = '';
             this.cpfDigits       = [];

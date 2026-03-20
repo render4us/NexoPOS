@@ -14,7 +14,7 @@
         <a href="{{ route('nota-fiscal.emissoes') }}"
            class="inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium
                   border border-input-edge bg-input-button hover:bg-input-button-hover text-primary transition-colors">
-            <i class="las la-list text-base"></i>
+            <i class="fal fa-list text-base"></i>
             {{ __('Ver Emissões') }}
         </a>
     </div>
@@ -22,7 +22,7 @@
     {{-- Mensagem de sucesso --}}
     @if (session('success'))
         <div class="flex items-center gap-3 border border-success-secondary bg-success-primary rounded-lg mb-6 px-4 py-3">
-            <i class="las la-check-circle text-2xl text-success-tertiary flex-shrink-0"></i>
+            <i class="fal fa-circle-check text-2xl text-success-tertiary flex-shrink-0"></i>
             <p class="text-success-tertiary text-sm">{{ session('success') }}</p>
         </div>
     @endif
@@ -30,13 +30,13 @@
     <form method="POST"
           action="{{ route('nota-fiscal.configuracoes.salvar') }}"
           enctype="multipart/form-data"
-          class="space-y-6">
+          class="nf-config-form">
         @csrf
 
         {{-- ── Controle geral ─────────────────────────────────────────── --}}
         <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
             <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
-                <i class="las la-sliders-h text-secondary"></i>
+                <i class="fal fa-sliders text-secondary"></i>
                 <h2 class="text-sm font-semibold text-primary">{{ __('Controle') }}</h2>
             </div>
             <div class="ns-box-body p-4 space-y-4">
@@ -70,7 +70,7 @@
         {{-- ── Dados da empresa ─────────────────────────────────────────── --}}
         <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
             <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
-                <i class="las la-building text-secondary"></i>
+                <i class="fal fa-building text-secondary"></i>
                 <h2 class="text-sm font-semibold text-primary">{{ __('Dados da Empresa Emissora') }}</h2>
             </div>
             <div class="ns-box-body p-4">
@@ -110,7 +110,7 @@
         {{-- ── Endereço ─────────────────────────────────────────────────── --}}
         <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
             <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
-                <i class="las la-map-marker-alt text-secondary"></i>
+                <i class="fal fa-location-dot text-secondary"></i>
                 <h2 class="text-sm font-semibold text-primary">{{ __('Endereço') }}</h2>
             </div>
             <div class="ns-box-body p-4">
@@ -143,7 +143,7 @@
         {{-- ── Certificado A1 ────────────────────────────────────────────── --}}
         <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
             <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
-                <i class="las la-certificate text-secondary"></i>
+                <i class="fal fa-certificate text-secondary"></i>
                 <h2 class="text-sm font-semibold text-primary">{{ __('Certificado Digital A1 (.pfx)') }}</h2>
             </div>
             <div class="ns-box-body p-4 space-y-4">
@@ -156,7 +156,7 @@
                                   hover:file:bg-input-button-hover file:cursor-pointer">
                     @if ($settings->certificado_conteudo)
                         <p class="flex items-center gap-1 text-xs text-success-tertiary mt-2">
-                            <i class="las la-check-circle"></i>
+                            <i class="fal fa-circle-check"></i>
                             {{ __('Certificado já configurado. Envie um novo arquivo apenas para substituí-lo.') }}
                         </p>
                     @endif
@@ -174,7 +174,7 @@
         {{-- ── CSC / QR Code ────────────────────────────────────────────── --}}
         <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
             <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
-                <i class="las la-qrcode text-secondary"></i>
+                <i class="fal fa-qrcode text-secondary"></i>
                 <h2 class="text-sm font-semibold text-primary">{{ __('CSC — Código de Segurança do Contribuinte') }}</h2>
             </div>
             <div class="ns-box-body p-4">
@@ -199,7 +199,7 @@
         {{-- ── Numeração ─────────────────────────────────────────────────── --}}
         <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
             <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
-                <i class="las la-hashtag text-secondary"></i>
+                <i class="fal fa-hashtag text-secondary"></i>
                 <h2 class="text-sm font-semibold text-primary">{{ __('Série e Numeração') }}</h2>
             </div>
             <div class="ns-box-body p-4">
@@ -221,7 +221,7 @@
         {{-- ── Defaults fiscais ─────────────────────────────────────────── --}}
         <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
             <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
-                <i class="las la-percentage text-secondary"></i>
+                <i class="fal fa-percent text-secondary"></i>
                 <h2 class="text-sm font-semibold text-primary">{{ __('Defaults Fiscais') }}</h2>
                 <span class="text-xs text-secondary">({{ __('para produtos sem configuração própria') }})</span>
             </div>
@@ -285,11 +285,22 @@
                     class="inline-flex items-center gap-2 px-6 py-3 bg-info-tertiary text-white rounded-lg
                            font-semibold text-sm hover:opacity-90 focus:outline-none focus:ring-2
                            focus:ring-info-secondary transition-opacity">
-                <i class="las la-save text-base"></i>
+                <i class="fal fa-floppy-disk text-base"></i>
                 {{ __('Salvar Configurações') }}
             </button>
         </div>
 
     </form>
 </div>
+@endsection
+
+@section('layout.dashboard.header')
+<style>
+    .nf-config-form > .ns-box + .ns-box,
+    .nf-config-form > .ns-box + div,
+    .nf-config-form > div + .ns-box,
+    .nf-config-form > div + div {
+        margin-top: 2rem;
+    }
+</style>
 @endsection

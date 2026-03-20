@@ -37,6 +37,7 @@ if ( Auth::check() ) {
     ?>
     @vite([
         'resources/scss/line-awesome/1.3.0/scss/line-awesome.scss',
+        'resources/scss/fontawesome.scss',
         'resources/scss/grid.scss',
         'resources/scss/fonts.scss',
         'resources/scss/animations.scss',

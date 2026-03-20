@@ -58,6 +58,7 @@ export default ({ mode }) => {
                     'resources/scss/typography.scss',
                     'resources/scss/fonts.scss',
                     'resources/scss/line-awesome/1.3.0/scss/line-awesome.scss',
+                    'resources/scss/fontawesome.scss',
                 ],
                 refresh: [ 
                     'resources/views/**', 

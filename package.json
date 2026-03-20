@@ -5,7 +5,7 @@
   },
   "type": "module",
   "scripts": {
-    "build": "NODE_OPTIONS=--max-old-space-size=1536 vite build",
+    "build": "NODE_OPTIONS=--max-old-space-size=1536 vite build && cp node_modules/@awesome.me/kit-bb814e6d93/icons/webfonts/*.woff2 public/webfonts/ && cp node_modules/@fortawesome/fontawesome-free/webfonts/fa-brands-400.woff2 public/webfonts/",
     "dev": "vite",
     "watch": "vite build --watch",
     "test": "jest"
@@ -23,10 +23,12 @@
   },
   "name": "nexopos",
   "dependencies": {
+    "@awesome.me/kit-bb814e6d93": "^1.0.4",
     "@ckeditor/ckeditor5-build-classic": "^43.0.0",
     "@ckeditor/ckeditor5-vue": "^5.1.0",
     "@dicebear/avataaars": "^9.2.2",
     "@dicebear/core": "^9.2.2",
+    "@fortawesome/fontawesome-free": "^7.2.0",
     "@wordpress/hooks": "^4.18.0",
     "chart.js": "^4.4.7",
     "currency.js": "^2.0.4",

@@ -1,0 +1,26 @@
+// Font Awesome 7 Pro — Kit bb814e6d93
+// Importa a base (classes utilitárias: fa-spin, fa-fw, fa-stack, etc.)
+// e o estilo Light (fal / .fa-light) que é o principal deste kit.
+// As webfonts estão em public/webfonts/ (caminho absoluto para evitar problema de resolução do Vite).
+
+@use '@awesome.me/kit-bb814e6d93/icons/scss/fontawesome.scss';
+@use '@awesome.me/kit-bb814e6d93/icons/scss/light.scss';
+@use '@fortawesome/fontawesome-free/scss/brands.scss';
+
+// Redefine o @font-face com caminho absoluto (public/webfonts/) para evitar
+// o problema de resolução relativa do Vite no CSS compilado.
+@font-face {
+    font-family: "Font Awesome 7 Pro";
+    font-style: normal;
+    font-weight: 300;
+    font-display: block;
+    src: url('/webfonts/fa-light-300.woff2') format('woff2');
+}
+
+@font-face {
+    font-family: "Font Awesome 7 Brands";
+    font-style: normal;
+    font-weight: 400;
+    font-display: block;
+    src: url('/webfonts/fa-brands-400.woff2') format('woff2');
+}
