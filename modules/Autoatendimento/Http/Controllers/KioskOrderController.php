@@ -248,9 +248,28 @@ class KioskOrderController extends Controller
 
             // FINISHED = intent concluído; verificar se o pagamento foi aprovado
             if ($mpStatus === 'FINISHED') {
+                $paymentId = $res['payment']['id'] ?? null;
+
+                // A API do payment intent retorna payment.id mas sem payment.state.
+                // Quando há um payment.id, consultamos a API de pagamentos para confirmar.
+                if ($paymentId && $paymentState === null) {
+                    try {
+                        $payRes = Http::withHeaders(['Authorization' => 'Bearer ' . $mpConfig->access_token])
+                            ->get("https://api.mercadopago.com/v1/payments/{$paymentId}");
+                        $paymentState = $payRes->json('status'); // 'approved', 'rejected', etc.
+                        Log::info('[Kiosk] Status do pagamento via API /v1/payments', [
+                            'payment_id'    => $paymentId,
+                            'payment_state' => $paymentState,
+                        ]);
+                    } catch (\Throwable $e) {
+                        Log::warning('[Kiosk] Falha ao consultar /v1/payments', ['error' => $e->getMessage()]);
+                    }
+                }
+
                 if ($paymentState !== 'approved') {
                     Log::warning('[Kiosk] Pagamento finalizado mas não aprovado', [
                         'transaction_id' => $transactionId,
+                        'payment_id'     => $paymentId,
                         'payment_state'  => $paymentState,
                         'full_payment'   => $res['payment'] ?? null,
                     ]);
@@ -414,6 +433,12 @@ class KioskOrderController extends Controller
      *
      * @return array  Log de ações executadas
      */
+    /** Alias público para uso pelo CallbackController (webhook do Point). */
+    public function processarPagamentoAprovadoPublic(Order $order, string $paymentType): array
+    {
+        return $this->processarPagamentoAprovado($order, $paymentType);
+    }
+
     private function processarPagamentoAprovado(Order $order, string $paymentType): array
     {
         $setting = KioskSetting::instance();
