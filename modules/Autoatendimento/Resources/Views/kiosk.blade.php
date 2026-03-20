@@ -798,7 +798,7 @@
          STEP: PAGANDO
     ══════════════════════════════════════════════════════ --}}
     <div x-show="step === 'pagando'"
-         class="h-screen flex flex-col items-center justify-center gap-10 px-8 relative overflow-hidden"
+         class="h-screen flex flex-col items-center justify-center gap-7 px-8 relative overflow-hidden"
          style="background-color: {{ $setting->cor_primaria }};">
 
         {{-- Círculos decorativos de fundo --}}
@@ -811,16 +811,34 @@
             <div class="w-40 h-40 rounded-full border-[5px] border-white/15 absolute"></div>
             <div class="w-40 h-40 rounded-full border-[5px] border-transparent absolute anim-spin"
                  style="border-top-color: rgba(255,255,255,0.9);"></div>
-            <span class="text-7xl anim-pulse">💳</span>
+            <span class="text-7xl anim-pulse" x-text="paymentType === 'pix' ? '📱' : '💳'"></span>
         </div>
 
         <div class="text-center text-white z-10">
             <h2 class="text-3xl font-black mb-2 leading-tight">Aguardando pagamento</h2>
-            <p class="text-white/65 text-base">Aproxime ou insira o cartão<br>na maquininha</p>
+            <p class="text-white/65 text-base" x-show="paymentType !== 'pix'">Aproxime ou insira o cartão<br>na maquininha</p>
+            <p class="text-white/65 text-base" x-show="paymentType === 'pix'">Escaneie o QR Code com o app do seu banco</p>
         </div>
 
-        {{-- Aviso destacado: botão verde --}}
-        <div class="z-10 w-full max-w-sm">
+        {{-- QR Code Pix (exibido diretamente nesta tela quando for pix) --}}
+        <div x-show="paymentType === 'pix'" class="z-10 w-full max-w-xs">
+            <div class="bg-white rounded-2xl p-4 flex flex-col items-center gap-3 shadow-xl">
+                <div x-show="pixQrCodeBase64" class="p-2 border-2 rounded-xl" style="border-color:#32BCAD55;">
+                    <img :src="'data:image/png;base64,' + pixQrCodeBase64"
+                         class="w-52 h-52 object-contain" alt="QR Code Pix">
+                </div>
+                <div x-show="!pixQrCodeBase64"
+                     class="w-52 h-52 rounded-xl flex items-center justify-center"
+                     style="background:#32BCAD12;">
+                    <div class="w-10 h-10 rounded-full border-4 border-transparent anim-spin"
+                         style="border-top-color:#32BCAD;"></div>
+                </div>
+                <p class="text-gray-400 text-xs text-center">O QR Code expira em 30 minutos</p>
+            </div>
+        </div>
+
+        {{-- Aviso maquininha (só para cartão/débito) --}}
+        <div x-show="paymentType !== 'pix'" class="z-10 w-full max-w-sm">
             <div class="flex items-center gap-4 bg-white rounded-2xl px-5 py-4 shadow-xl"
                  style="border-left: 6px solid #22c55e;">
                 <div class="flex-shrink-0 w-12 h-12 rounded-full flex items-center justify-center text-2xl font-black text-white"
@@ -1348,7 +1366,7 @@ function kiosk() {
                     this.pixPaymentId    = data.payment_id;
                     this.pixQrCode       = data.qr_code;
                     this.pixQrCodeBase64 = data.qr_code_base64;
-                    this.step = 'pagando_pix';
+                    // Permanece em 'pagando' e exibe o QR Code nessa mesma tela
                     this.iniciarPollingPix();
                 } else {
                     this.errorMessage = data.message || 'Erro ao processar o pedido.';
