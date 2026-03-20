@@ -143,7 +143,7 @@ class KioskOrderController extends Controller
                 'amount'      => $amountCentavos,
                 'description' => 'Kiosk — Pedido #' . $order->id,
                 'payment'     => array_filter([
-                    'installments'      => 1,
+                    'installments'      => $request->payment_type === 'credit_card' ? 1 : null,
                     'type'              => $request->payment_type, // 'credit_card' | 'debit_card'
                     'installments_cost' => $request->payment_type === 'credit_card' ? 'seller' : null,
                 ]),
@@ -152,6 +152,8 @@ class KioskOrderController extends Controller
                     'print_on_terminal'  => false,
                 ],
             ];
+
+            Log::debug('[Kiosk] Payload enviado ao Mercado Pago', ['payload' => $payload]);
 
             $response = Http::withHeaders([
                     'Content-Type'  => 'application/json',
