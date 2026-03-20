@@ -26,6 +26,10 @@ Route::withoutMiddleware(EnsureFrontendRequestsAreStateful::class)->group(functi
     Route::get('kiosk/status/{transactionId}', [KioskOrderController::class, 'status'])
         ->name('kiosk.pedido.status');
 
+    // Consulta de status do pagamento Pix (polling)
+    Route::get('kiosk/pix-status/{paymentId}', [KioskOrderController::class, 'pixStatus'])
+        ->name('kiosk.pix.status');
+
     // Simulação de pagamento aprovado (apenas quando teste_pagamento_ativo = true)
     Route::post('kiosk/simular-pagamento', [KioskOrderController::class, 'simularPagamento'])
         ->name('kiosk.simular-pagamento');

@@ -33,18 +33,26 @@ class KioskOrderController extends Controller
             'phone'                      => 'nullable|string|max:30',
             'nfe'                        => 'boolean',
             'cpf'                        => 'nullable|string|max:14',
-            'payment_type'               => 'required|in:credit_card,debit_card',
+            'payment_type'               => 'required|in:credit_card,debit_card,pix',
         ]);
 
         $setting  = KioskSetting::instance();
         $bypass   = (bool) $setting->teste_pagamento_ativo;
         $mpConfig = $bypass ? null : MercadoPagoSetting::first();
 
-        if (! $bypass && (! $mpConfig || ! $mpConfig->access_token || ! $mpConfig->terminal_id)) {
-            return response()->json([
-                'status'  => 'error',
-                'message' => 'Mercado Pago não configurado. Contate o atendente.',
-            ], 500);
+        if (! $bypass) {
+            if (! $mpConfig || ! $mpConfig->access_token) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Mercado Pago não configurado. Contate o atendente.',
+                ], 500);
+            }
+            if ($request->payment_type !== 'pix' && ! $mpConfig->terminal_id) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Terminal Mercado Pago não configurado. Contate o atendente.',
+                ], 500);
+            }
         }
 
         $total = collect($request->items)
@@ -133,7 +141,74 @@ class KioskOrderController extends Controller
             }
         }
 
-        // ── 2b. Envia para a maquininha via Mercado Pago (Payment Intents) ────
+        // ── 2b. Pix — gera QR Code via API de pagamentos do Mercado Pago ─────
+        if ($request->payment_type === 'pix') {
+            try {
+                $externalRef = 'kiosk_' . $order->id . '_' . now()->format('YmdHis');
+
+                $pixPayload = [
+                    'transaction_amount' => (float) $total,
+                    'payment_method_id'  => 'pix',
+                    'payer'              => ['email' => 'cliente@kiosk.local'],
+                    'description'        => 'Kiosk — Pedido #' . $order->id,
+                    'external_reference' => $externalRef,
+                ];
+
+                Log::debug('[Kiosk] Payload Pix enviado', ['payload' => $pixPayload]);
+
+                $response = Http::withHeaders([
+                        'Content-Type'       => 'application/json',
+                        'Authorization'      => 'Bearer ' . $mpConfig->access_token,
+                        'X-Idempotency-Key'  => $externalRef,
+                    ])
+                    ->timeout(30)
+                    ->post('https://api.mercadopago.com/v1/payments', $pixPayload);
+
+                $res = $response->json();
+
+                Log::debug('[Kiosk] Resposta Pix Mercado Pago', [
+                    'status' => $response->status(),
+                    'body'   => $res,
+                ]);
+
+                if ($response->successful() && isset($res['id'])) {
+                    $qrCode       = $res['point_of_interaction']['transaction_data']['qr_code'] ?? null;
+                    $qrCodeBase64 = $res['point_of_interaction']['transaction_data']['qr_code_base64'] ?? null;
+
+                    MercadoPagoTransaction::create([
+                        'order_id'       => $order->id,
+                        'transaction_id' => (string) $res['id'],
+                        'status'         => $res['status'] ?? 'pending',
+                        'payment_type'   => 'pix',
+                        'payload'        => $res,
+                    ]);
+
+                    return response()->json([
+                        'status'         => 'pix_created',
+                        'order_id'       => $order->id,
+                        'payment_id'     => $res['id'],
+                        'qr_code'        => $qrCode,
+                        'qr_code_base64' => $qrCodeBase64,
+                    ]);
+                }
+
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Erro ao gerar QR Code Pix. Tente novamente.',
+                    'details' => $res,
+                ], 500);
+
+            } catch (\Throwable $e) {
+                Log::error('[Kiosk] Erro Pix', ['error' => $e->getMessage()]);
+
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Erro de comunicação ao gerar Pix.',
+                ], 500);
+            }
+        }
+
+        // ── 2c. Envia para a maquininha via Mercado Pago (Payment Intents) ────
         try {
             // Payment Intents API exige o valor em centavos (inteiro)
             $amountCentavos = (int) round($total * 100);
@@ -356,6 +431,66 @@ class KioskOrderController extends Controller
                 'trace'          => $e->getTraceAsString(),
             ]);
 
+            return response()->json(['status' => 'pending']);
+        }
+    }
+
+    /**
+     * Consulta o status de um pagamento Pix (polling pelo frontend).
+     */
+    public function pixStatus(int $paymentId)
+    {
+        $mpConfig = MercadoPagoSetting::first();
+
+        if (! $mpConfig) {
+            return response()->json(['status' => 'error'], 500);
+        }
+
+        try {
+            $response = Http::withHeaders([
+                    'Authorization' => 'Bearer ' . $mpConfig->access_token,
+                ])
+                ->get("https://api.mercadopago.com/v1/payments/{$paymentId}");
+
+            if (! $response->successful()) {
+                return response()->json(['status' => 'pending']);
+            }
+
+            $res    = $response->json();
+            $status = $res['status'] ?? 'pending';
+
+            Log::debug('[Kiosk] Status Pix', ['payment_id' => $paymentId, 'status' => $status]);
+
+            if ($status === 'approved') {
+                MercadoPagoTransaction::where('transaction_id', (string) $paymentId)
+                    ->update(['status' => 'approved', 'payload' => $res]);
+
+                $transaction = MercadoPagoTransaction::where('transaction_id', (string) $paymentId)->first();
+
+                if ($transaction && $transaction->order_id) {
+                    $order = Order::find($transaction->order_id);
+                    if ($order && $order->payment_status !== Order::PAYMENT_PAID) {
+                        $this->processarPagamentoAprovado($order, 'pix');
+                    }
+                }
+
+                return response()->json([
+                    'status'   => 'success',
+                    'order_id' => $transaction?->order_id,
+                ]);
+            }
+
+            if (in_array($status, ['cancelled', 'rejected', 'refunded', 'charged_back'])) {
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Pagamento Pix cancelado ou expirado.',
+                ]);
+            }
+
+            return response()->json(['status' => 'pending']);
+
+        } catch (\Throwable $e) {
+            Log::error('[Kiosk] Erro ao consultar status Pix', ['error' => $e->getMessage()]);
             return response()->json(['status' => 'pending']);
         }
     }

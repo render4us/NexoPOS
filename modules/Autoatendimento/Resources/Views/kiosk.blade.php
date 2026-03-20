@@ -670,7 +670,7 @@
             <div class="bg-white rounded-2xl p-4"
                  style="box-shadow:0 2px 10px rgba(0,0,0,0.06);">
                 <h2 class="font-bold text-gray-800 mb-3 text-sm">💳 Forma de pagamento</h2>
-                <div class="grid grid-cols-2 gap-3">
+                <div class="grid grid-cols-3 gap-3">
                     <button type="button" @click="paymentType = 'credit_card'"
                             class="py-4 rounded-xl font-bold text-sm border-2 transition-all"
                             :style="paymentType === 'credit_card'
@@ -684,6 +684,14 @@
                                 ? 'border-color: {{ $setting->cor_primaria }}; background-color: {{ $setting->cor_primaria }}14; color: {{ $setting->cor_primaria }};'
                                 : 'border-color:#e5e7eb; color:#6b7280;'">
                         💳 Débito
+                    </button>
+                    <button type="button" @click="paymentType = 'pix'"
+                            class="py-4 rounded-xl font-bold text-sm border-2 transition-all"
+                            :style="paymentType === 'pix'
+                                ? 'border-color: #32BCAD; background-color: #32BCAD18; color: #32BCAD;'
+                                : 'border-color:#e5e7eb; color:#6b7280;'">
+                        <span class="block text-lg leading-none mb-0.5">⚡</span>
+                        Pix
                     </button>
                 </div>
             </div>
@@ -854,6 +862,58 @@
     </div>
 
     {{-- ══════════════════════════════════════════════════════
+         STEP: PAGANDO PIX
+    ══════════════════════════════════════════════════════ --}}
+    <div x-show="step === 'pagando_pix'" class="flex flex-col h-screen" style="background:#f4f4f6;">
+
+        <header class="text-white flex-shrink-0 z-10"
+                style="background: linear-gradient(135deg, #32BCAD 0%, #1a9e90 100%);
+                       box-shadow:0 2px 16px rgba(0,0,0,0.18);">
+            <div class="flex items-center px-5 py-4">
+                <h1 class="font-black text-xl flex-1 text-center">⚡ Pagar com Pix</h1>
+            </div>
+        </header>
+
+        <div class="flex-1 overflow-y-auto flex flex-col items-center justify-center gap-5 px-6 py-4">
+
+            {{-- Valor --}}
+            <div class="bg-white rounded-2xl px-8 py-4 text-center w-full"
+                 style="box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+                <p class="text-xs text-gray-400 font-semibold uppercase tracking-widest mb-1">Valor a pagar</p>
+                <p class="text-4xl font-black" style="color:#32BCAD;"
+                   x-text="'R$ ' + totalPrice.toFixed(2).replace('.', ',')"></p>
+            </div>
+
+            {{-- QR Code --}}
+            <div class="bg-white rounded-2xl p-5 flex flex-col items-center gap-3 w-full"
+                 style="box-shadow:0 2px 10px rgba(0,0,0,0.06);">
+                <p class="text-sm font-bold text-gray-700">📱 Abra o app do seu banco e escaneie o QR Code</p>
+
+                <div x-show="pixQrCodeBase64" class="p-3 border-2 rounded-2xl" style="border-color:#32BCAD33;">
+                    <img :src="'data:image/png;base64,' + pixQrCodeBase64"
+                         class="w-64 h-64 object-contain" alt="QR Code Pix">
+                </div>
+
+                <div x-show="!pixQrCodeBase64"
+                     class="w-64 h-64 rounded-2xl flex items-center justify-center"
+                     style="background:#32BCAD12;">
+                    <div class="w-12 h-12 rounded-full border-4 border-transparent anim-spin"
+                         style="border-top-color:#32BCAD;"></div>
+                </div>
+            </div>
+
+            {{-- Aguardando --}}
+            <div class="flex items-center gap-3 text-gray-500">
+                <div class="w-5 h-5 rounded-full border-2 border-transparent anim-spin flex-shrink-0"
+                     style="border-top-color:#32BCAD;"></div>
+                <p class="text-sm">Aguardando confirmação do pagamento...</p>
+            </div>
+
+            <p class="text-gray-400 text-xs text-center">O QR Code expira em 30 minutos.<br>Não feche ou recarregue esta tela.</p>
+        </div>
+    </div>
+
+    {{-- ══════════════════════════════════════════════════════
          STEP: SUCESSO
     ══════════════════════════════════════════════════════ --}}
     <div x-show="step === 'sucesso'"
@@ -978,6 +1038,12 @@ function kiosk() {
         transactionId: null,
         pollingInterval: null,
         errorMessage: '',
+
+        // Pix
+        pixQrCode: null,
+        pixQrCodeBase64: null,
+        pixPaymentId: null,
+        pixCopiado: false,
 
         // Reset
         resetCountdown: {{ $setting->reset_timeout ?? 10 }},
@@ -1270,12 +1336,20 @@ function kiosk() {
 
                 if (data.status === 'success') {
                     // Modo bypass — pagamento aprovado instantaneamente
+                    this.orderId = data.order_id;
                     this.step = 'sucesso';
                     this.iniciarContadorReset();
                 } else if (data.status === 'created' && data.transaction_id) {
                     this.orderId       = data.order_id;
                     this.transactionId = data.transaction_id;
                     this.iniciarPolling();
+                } else if (data.status === 'pix_created' && data.payment_id) {
+                    this.orderId         = data.order_id;
+                    this.pixPaymentId    = data.payment_id;
+                    this.pixQrCode       = data.qr_code;
+                    this.pixQrCodeBase64 = data.qr_code_base64;
+                    this.step = 'pagando_pix';
+                    this.iniciarPollingPix();
                 } else {
                     this.errorMessage = data.message || 'Erro ao processar o pedido.';
                     this.step = 'erro';
@@ -1300,6 +1374,28 @@ function kiosk() {
                     } else if (data.status === 'error') {
                         clearInterval(this.pollingInterval);
                         this.errorMessage = data.message || 'Pagamento não aprovado.';
+                        this.step = 'erro';
+                    }
+                } catch (e) {
+                    // Erro de rede → continua tentando
+                }
+            }, 3000);
+        },
+
+        iniciarPollingPix() {
+            this.pollingInterval = setInterval(async () => {
+                try {
+                    const data = await fetch(`/api/kiosk/pix-status/${this.pixPaymentId}`, {
+                        headers: { 'Accept': 'application/json' }
+                    }).then(r => r.json());
+
+                    if (data.status === 'success') {
+                        clearInterval(this.pollingInterval);
+                        this.step = 'sucesso';
+                        this.iniciarContadorReset();
+                    } else if (data.status === 'error') {
+                        clearInterval(this.pollingInterval);
+                        this.errorMessage = data.message || 'Pix não confirmado.';
                         this.step = 'erro';
                     }
                 } catch (e) {
@@ -1351,18 +1447,22 @@ function kiosk() {
             clearInterval(this.pollingInterval);
             clearInterval(this.resetInterval);
 
-            this.step           = 'splash';
-            this.mode           = null;
-            this.phone          = '';
-            this.nfe            = false;
-            this.cpf            = '';
-            this.cpfDigits      = [];
-            this.paymentType    = 'credit_card';
-            this.orderId        = null;
-            this.transactionId  = null;
-            this.errorMessage   = '';
-            this.showCart       = false;
-            this.resetCountdown = {{ $setting->reset_timeout ?? 10 }};
+            this.step            = 'splash';
+            this.mode            = null;
+            this.phone           = '';
+            this.nfe             = false;
+            this.cpf             = '';
+            this.cpfDigits       = [];
+            this.paymentType     = 'credit_card';
+            this.orderId         = null;
+            this.transactionId   = null;
+            this.errorMessage    = '';
+            this.showCart        = false;
+            this.resetCountdown  = {{ $setting->reset_timeout ?? 10 }};
+            this.pixQrCode       = null;
+            this.pixQrCodeBase64 = null;
+            this.pixPaymentId    = null;
+            this.pixCopiado      = false;
 
             this.resetQuantidades();
         },
