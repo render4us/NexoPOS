@@ -23,16 +23,23 @@ class KioskSetting extends Model
         'printer_port',
         'printer_columns',
         'teste_pagamento_ativo',
+        'kitchen_printer_enabled',
+        'kitchen_printer_ip',
+        'kitchen_printer_port',
+        'kitchen_printer_columns',
     ];
 
     protected $casts = [
-        'ativo'                  => 'boolean',
-        'operator_user_id'       => 'integer',
-        'reset_timeout'          => 'integer',
-        'printer_enabled'        => 'boolean',
-        'printer_port'           => 'integer',
-        'printer_columns'        => 'integer',
-        'teste_pagamento_ativo'  => 'boolean',
+        'ativo'                    => 'boolean',
+        'operator_user_id'         => 'integer',
+        'reset_timeout'            => 'integer',
+        'printer_enabled'          => 'boolean',
+        'printer_port'             => 'integer',
+        'printer_columns'          => 'integer',
+        'teste_pagamento_ativo'    => 'boolean',
+        'kitchen_printer_enabled'  => 'boolean',
+        'kitchen_printer_port'     => 'integer',
+        'kitchen_printer_columns'  => 'integer',
     ];
 
     /**
@@ -50,11 +57,15 @@ class KioskSetting extends Model
             'logo_url'         => '',
             'operator_user_id' => 1,
             'reset_timeout'    => 10,
-            'printer_enabled'  => false,
-            'printer_ip'              => '',
-            'printer_port'            => 9100,
-            'printer_columns'         => 48,
-            'teste_pagamento_ativo'   => false,
+            'printer_enabled'          => false,
+            'printer_ip'               => '',
+            'printer_port'             => 9100,
+            'printer_columns'          => 48,
+            'teste_pagamento_ativo'    => false,
+            'kitchen_printer_enabled'  => false,
+            'kitchen_printer_ip'       => '',
+            'kitchen_printer_port'     => 9100,
+            'kitchen_printer_columns'  => 48,
         ]);
     }
 }

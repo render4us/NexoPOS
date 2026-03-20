@@ -1268,7 +1268,11 @@ function kiosk() {
 
                 const data = await response.json();
 
-                if (data.status === 'created' && data.transaction_id) {
+                if (data.status === 'success') {
+                    // Modo bypass — pagamento aprovado instantaneamente
+                    this.step = 'sucesso';
+                    this.iniciarContadorReset();
+                } else if (data.status === 'created' && data.transaction_id) {
                     this.orderId       = data.order_id;
                     this.transactionId = data.transaction_id;
                     this.iniciarPolling();

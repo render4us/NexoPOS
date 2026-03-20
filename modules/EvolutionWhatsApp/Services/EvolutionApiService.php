@@ -155,7 +155,7 @@ class EvolutionApiService
 
         // Data/hora do pedido
         $data = $order->created_at
-            ? $order->created_at->format('d/m/Y H:i')
+            ? \Carbon\Carbon::parse($order->created_at)->format('d/m/Y H:i')
             : now()->format('d/m/Y H:i');
 
         // Forma de pagamento (primeiro pagamento registrado, se houver)

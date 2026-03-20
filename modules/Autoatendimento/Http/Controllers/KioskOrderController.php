@@ -36,10 +36,11 @@ class KioskOrderController extends Controller
             'payment_type'               => 'required|in:credit_card,debit_card',
         ]);
 
-        $setting = KioskSetting::instance();
-        $mpConfig = MercadoPagoSetting::first();
+        $setting  = KioskSetting::instance();
+        $bypass   = (bool) $setting->teste_pagamento_ativo;
+        $mpConfig = $bypass ? null : MercadoPagoSetting::first();
 
-        if (! $mpConfig || ! $mpConfig->access_token || ! $mpConfig->terminal_id) {
+        if (! $bypass && (! $mpConfig || ! $mpConfig->access_token || ! $mpConfig->terminal_id)) {
             return response()->json([
                 'status'  => 'error',
                 'message' => 'Mercado Pago não configurado. Contate o atendente.',
@@ -108,7 +109,31 @@ class KioskOrderController extends Controller
             ], 500);
         }
 
-        // ── 2. Envia para a maquininha via Mercado Pago (Payment Intents) ─────
+        // ── 2a. Modo bypass — pula Mercado Pago e aprova imediatamente ────────
+        if ($bypass) {
+            try {
+                $log = $this->processarPagamentoAprovado($order, $request->payment_type);
+                Log::info('[Kiosk] Pagamento bypass processado', ['order_id' => $order->id, 'log' => $log]);
+
+                return response()->json([
+                    'status'   => 'success',
+                    'order_id' => $order->id,
+                    'message'  => 'Pagamento aprovado (modo bypass).',
+                ]);
+            } catch (\Throwable $e) {
+                Log::error('[Kiosk] Erro no bypass de pagamento', [
+                    'error' => $e->getMessage(),
+                    'trace' => $e->getTraceAsString(),
+                ]);
+
+                return response()->json([
+                    'status'  => 'error',
+                    'message' => 'Erro ao processar pagamento (bypass).',
+                ], 500);
+            }
+        }
+
+        // ── 2b. Envia para a maquininha via Mercado Pago (Payment Intents) ────
         try {
             // Payment Intents API exige o valor em centavos (inteiro)
             $amountCentavos = (int) round($total * 100);
@@ -396,6 +421,10 @@ class KioskOrderController extends Controller
 
         Auth::onceUsingId($setting->operator_user_id ?? 1);
 
+        // Recarrega o pedido limpo para evitar que relações temporárias (ex: 'addresses'
+        // setada via setRelations() no OrdersService::create) causem erro no refresh()
+        $order = Order::find($order->id);
+
         /** @var OrdersService $ordersService */
         $ordersService = app(OrdersService::class);
         $ordersService->makeOrderSinglePayment([
@@ -427,11 +456,17 @@ class KioskOrderController extends Controller
                 'unit_price' => $p->unit_price,
             ])->toArray();
 
+            // Extrai o WhatsApp da nota para exibir aviso no cupom
+            $whatsapp = null;
+            if (preg_match('/WhatsApp:\s*([\d\s\(\)\-\+]+)/i', $order->note ?? '', $wm)) {
+                $whatsapp = trim($wm[1]);
+            }
+
             $printed = app(EscPosPrinterService::class)->printReceipt(
                 items:       $items,
                 total:       (float) $order->total,
                 mode:        $order->type ?? 'takeaway',
-                phone:       null,
+                phone:       $whatsapp,
                 paymentType: $paymentType,
                 orderId:     $order->id,
                 setting:     $setting
