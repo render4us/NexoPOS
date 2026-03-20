@@ -264,7 +264,9 @@ class EscPosPrinterService
 
     private function sendViaHttp(string $data, string $url, string $label): bool
     {
-        $payload = json_encode(['dados' => base64_encode($data)]);
+        // 'impressora' permite que o KioskServer roteie para a impressora correta
+        $destino = $label === 'cozinha' ? 'cozinha' : 'totem';
+        $payload = json_encode(['dados' => base64_encode($data), 'impressora' => $destino]);
 
         $ch = curl_init($url);
         curl_setopt_array($ch, [
