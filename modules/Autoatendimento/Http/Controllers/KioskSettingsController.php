@@ -41,8 +41,12 @@ class KioskSettingsController extends Controller
             'printer_ip'        => 'nullable|ip',
             'printer_port'      => 'nullable|integer|min:1|max:65535',
             'printer_columns'        => 'nullable|integer|in:32,40,48',
-            'printer_http_url'       => 'nullable|url|max:500',
-            'teste_pagamento_ativo'  => 'boolean',
+            'printer_http_url'        => 'nullable|url|max:500',
+            'teste_pagamento_ativo'   => 'boolean',
+            'kitchen_printer_enabled' => 'boolean',
+            'kitchen_printer_ip'      => 'nullable|ip',
+            'kitchen_printer_port'    => 'nullable|integer|min:1|max:65535',
+            'kitchen_printer_columns' => 'nullable|integer|in:32,40,48',
         ]);
 
         $setting = KioskSetting::instance();
@@ -86,8 +90,12 @@ class KioskSettingsController extends Controller
             'printer_enabled'  => $request->boolean('printer_enabled'),
             'printer_ip'             => $request->input('printer_ip'),
             'printer_port'           => $request->input('printer_port', 9100),
-            'printer_columns'        => $request->input('printer_columns', 48),
-            'teste_pagamento_ativo'  => $request->boolean('teste_pagamento_ativo'),
+            'printer_columns'         => $request->input('printer_columns', 48),
+            'teste_pagamento_ativo'   => $request->boolean('teste_pagamento_ativo'),
+            'kitchen_printer_enabled' => $request->boolean('kitchen_printer_enabled'),
+            'kitchen_printer_ip'      => $request->input('kitchen_printer_ip'),
+            'kitchen_printer_port'    => $request->input('kitchen_printer_port', 9100),
+            'kitchen_printer_columns' => $request->input('kitchen_printer_columns', 48),
         ]);
 
         return redirect()->route('autoatendimento.configuracoes')

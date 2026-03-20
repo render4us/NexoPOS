@@ -324,6 +324,58 @@
                 </div>
             </div>
 
+            {{-- ── Impressora de Cozinha ─────────────────────────────────── --}}
+            <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
+                <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">
+                    <i class="las la-utensils text-secondary"></i>
+                    <h2 class="text-sm font-semibold text-primary">{{ __('Impressora de Cozinha') }}</h2>
+                </div>
+                <div class="ns-box-body p-4 space-y-4">
+
+                    <label class="flex items-center gap-3 cursor-pointer">
+                        <input type="hidden" name="kitchen_printer_enabled" value="0">
+                        <input type="checkbox" name="kitchen_printer_enabled" value="1"
+                               {{ old('kitchen_printer_enabled', $setting->kitchen_printer_enabled) ? 'checked' : '' }}
+                               class="w-4 h-4 rounded border-input-edge text-info-tertiary">
+                        <span class="text-sm font-medium text-primary">{{ __('Imprimir ticket na cozinha após pagamento aprovado') }}</span>
+                    </label>
+                    <p class="text-xs text-secondary">
+                        O ticket da cozinha exibe apenas o número do pedido, tipo (comer no local / para levar) e os itens — sem preços.
+                    </p>
+
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div class="md:col-span-1">
+                            <label class="block text-sm font-medium text-primary mb-1">{{ __('IP da Impressora de Cozinha') }}</label>
+                            <input type="text" name="kitchen_printer_ip"
+                                   value="{{ old('kitchen_printer_ip', $setting->kitchen_printer_ip) }}"
+                                   placeholder="192.168.1.101"
+                                   class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary font-mono">
+                            <p class="text-xs text-secondary mt-1">Pode ser uma impressora diferente da do totem.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-1">{{ __('Porta TCP') }}</label>
+                            <input type="number" name="kitchen_printer_port" min="1" max="65535"
+                                   value="{{ old('kitchen_printer_port', $setting->kitchen_printer_port ?: 9100) }}"
+                                   class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary font-mono">
+                            <p class="text-xs text-secondary mt-1">Padrão: 9100.</p>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-primary mb-1">{{ __('Colunas do papel') }}</label>
+                            <select name="kitchen_printer_columns"
+                                    class="block w-full border border-input-edge bg-box-background text-primary rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-info-secondary">
+                                @foreach([32 => '32 (57mm)', 40 => '40 (76mm)', 48 => '48 (80mm)'] as $val => $label)
+                                    <option value="{{ $val }}"
+                                            {{ old('kitchen_printer_columns', $setting->kitchen_printer_columns ?: 48) == $val ? 'selected' : '' }}>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+
             {{-- ── Teste de Pagamento ────────────────────────────────────── --}}
             <div class="ns-box rounded-lg border border-box-edge overflow-hidden">
                 <div class="ns-box-header px-4 py-3 border-b border-box-edge flex items-center gap-2">

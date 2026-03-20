@@ -87,6 +87,8 @@ class EscPosPrinterService
         $storeAddress = ns()->option->get('ns_store_address', '');
         $storeCity    = ns()->option->get('ns_store_city', '');
         $storePhone   = ns()->option->get('ns_store_phone', '');
+        $storeFax     = ns()->option->get('ns_store_fax', '');       // WhatsApp
+        $storeCnpj    = ns()->option->get('ns_store_additional', ''); // CNPJ
 
         $d = self::INIT;
 
@@ -96,18 +98,8 @@ class EscPosPrinterService
         $d .= $this->truncate(strtoupper($storeName), (int) ($this->cols / 2)) . self::LF;
         $d .= self::SIZE_NORMAL . self::BOLD_OFF;
 
-        if ($setting->subtitulo) {
-            $d .= $this->truncate($setting->subtitulo, $this->cols) . self::LF;
-        }
-
-        if ($storeAddress) {
-            $d .= $this->truncate($storeAddress, $this->cols) . self::LF;
-        }
-        if ($storeCity) {
-            $d .= $this->truncate($storeCity, $this->cols) . self::LF;
-        }
-        if ($storePhone) {
-            $d .= 'Tel: ' . $storePhone . self::LF;
+        if ($storeFax) {
+            $d .= $storeFax . self::LF;
         }
 
         $d .= self::LF;
@@ -169,6 +161,22 @@ class EscPosPrinterService
         $d .= self::ALIGN_CENTER;
         $d .= 'Obrigado pela preferencia!' . self::LF;
         $d .= 'Volte sempre! :)' . self::LF;
+        $d .= self::LF;
+        $d .= $sep . self::LF;
+
+        if ($storeAddress) {
+            $d .= $this->truncate($storeAddress, $this->cols) . self::LF;
+        }
+        if ($storeCity) {
+            $d .= $this->truncate($storeCity, $this->cols) . self::LF;
+        }
+        if ($storePhone) {
+            $d .= 'Tel: ' . $storePhone . self::LF;
+        }
+        if ($storeCnpj) {
+            $d .= 'CNPJ: ' . $storeCnpj . self::LF;
+        }
+
         $d .= self::LF . self::LF . self::LF;
         $d .= self::CUT_PARTIAL;
 
@@ -183,13 +191,17 @@ class EscPosPrinterService
         int $orderId,
         KioskSetting $setting
     ): string {
-        $cols = $this->cols;
-        $sep  = str_repeat('=', $cols);
+        $cols      = $this->cols;
+        $sep       = str_repeat('=', $cols);
+        $storeName = ns()->option->get('ns_store_name', $setting->titulo ?: 'LOJA');
 
         $d = self::INIT;
 
         // ── Cabeçalho ────────────────────────────────────────────────────
         $d .= self::ALIGN_CENTER;
+        $d .= self::BOLD_ON . self::SIZE_NORMAL;
+        $d .= $this->truncate(strtoupper($storeName), $cols) . self::LF;
+        $d .= self::BOLD_OFF;
         $d .= self::BOLD_ON . self::SIZE_DOUBLE;
         $d .= 'PEDIDO #' . $orderId . self::LF;
         $d .= self::SIZE_NORMAL . self::BOLD_OFF;
