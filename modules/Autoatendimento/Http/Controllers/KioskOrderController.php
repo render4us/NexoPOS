@@ -142,11 +142,11 @@ class KioskOrderController extends Controller
             $payload = [
                 'amount'      => $amountCentavos,
                 'description' => 'Kiosk — Pedido #' . $order->id,
-                'payment'     => [
+                'payment'     => array_filter([
                     'installments'      => 1,
                     'type'              => $request->payment_type, // 'credit_card' | 'debit_card'
-                    'installments_cost' => 'seller',
-                ],
+                    'installments_cost' => $request->payment_type === 'credit_card' ? 'seller' : null,
+                ]),
                 'additional_info' => [
                     'external_reference' => $externalRef,
                     'print_on_terminal'  => false,
