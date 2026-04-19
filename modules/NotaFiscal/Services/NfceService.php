@@ -6,6 +6,8 @@ use App\Models\Order;
 use App\Models\OrderPayment;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+use Modules\Autoatendimento\Models\KioskSetting;
+use Modules\Autoatendimento\Services\EscPosPrinterService;
 use Modules\NotaFiscal\Models\NotaFiscalEmissao;
 use Modules\NotaFiscal\Models\NotaFiscalSetting;
 use NFePHP\Common\Certificate;
@@ -48,6 +50,14 @@ class NfceService
 
         if (! $settings->certificado_conteudo || ! $settings->certificado_senha) {
             throw new \Exception('[NFC-e] Certificado digital não configurado.');
+        }
+
+        if (empty($settings->ie)) {
+            throw new \Exception('[NFC-e] Inscrição Estadual (IE) não configurada.');
+        }
+
+        if (empty($settings->csc) || empty($settings->csc_id)) {
+            throw new \Exception('[NFC-e] CSC ou CSC_id não configurado — obrigatório para o QR Code da NFC-e.');
         }
 
         // Garante que os produtos estão carregados
@@ -139,14 +149,19 @@ class NfceService
         $make->tagide($std);
 
         // ── emit ──────────────────────────────────────────────────────────────
+        // Em homologação, SEFAZ exige xNome literal; nome real só em produção.
+        $xNome = ((int) $settings->ambiente === 2)
+            ? 'NF-E EMITIDA EM AMBIENTE DE HOMOLOGACAO - SEM VALOR FISCAL'
+            : $settings->razao_social;
+
         $std         = new \stdClass();
         $std->CNPJ   = $settings->cnpj;
-        $std->xNome  = $settings->razao_social;
+        $std->xNome  = $xNome;
         $std->xFant  = $settings->nome_fantasia ?: $settings->razao_social;
         $std->IE     = $settings->ie ?? 'ISENTO';
         $std->CNAE   = $settings->cnae;
         $std->CRT    = $settings->crt;
-        $make->tagemit($std);
+        $make->tagEmit($std);
 
         // ── enderEmit ─────────────────────────────────────────────────────────
         $std          = new \stdClass();
@@ -192,12 +207,7 @@ class NfceService
             $totalProd += $vProdItem;
             $totalDesc += $vDescItem;
 
-            // det
-            $std       = new \stdClass();
-            $std->item = $nItem;
-            $make->tagdet($std);
-
-            // prod
+            // prod (o <det nItem> é criado automaticamente pelo tagprod no NFePHP 5.2+)
             $ean = $product?->barcode;
             // GTIN deve ter 8, 12, 13 ou 14 dígitos ou ser "SEM GTIN"
             if (! $ean || ! preg_match('/^\d{8}$|^\d{12}$|^\d{13}$|^\d{14}$/', $ean)) {
@@ -256,36 +266,32 @@ class NfceService
             }
 
             // ── PIS ───────────────────────────────────────────────────────────
+            // No NFePHP 5.2+ tagPIS/tagCOFINS despacham internamente o subnó pelo CST
+            // (CST 07 → PISNT / COFINSNT; CST 01 → PISAliq / COFINSAliq).
+            $std       = new \stdClass();
+            $std->item = $nItem;
             if ($settings->isSimlesNacional()) {
-                $std       = new \stdClass();
-                $std->item = $nItem;
-                $std->CST  = '07';                // isento / não tributado
-                $make->tagPISNT($std);
+                $std->CST = '07';
             } else {
-                $std        = new \stdClass();
-                $std->item  = $nItem;
-                $std->CST   = '01';
-                $std->vBC   = $vProdItem;
-                $std->pPIS  = 0.65;
-                $std->vPIS  = round($vProdItem * 0.0065, 2);
-                $make->tagPIS($std);
+                $std->CST  = '01';
+                $std->vBC  = $vProdItem;
+                $std->pPIS = 0.65;
+                $std->vPIS = round($vProdItem * 0.0065, 2);
             }
+            $make->tagPIS($std);
 
             // ── COFINS ────────────────────────────────────────────────────────
+            $std       = new \stdClass();
+            $std->item = $nItem;
             if ($settings->isSimlesNacional()) {
-                $std       = new \stdClass();
-                $std->item = $nItem;
-                $std->CST  = '07';
-                $make->tagCOFINSNT($std);
+                $std->CST = '07';
             } else {
-                $std          = new \stdClass();
-                $std->item    = $nItem;
                 $std->CST     = '01';
                 $std->vBC     = $vProdItem;
                 $std->pCOFINS = 3.0;
                 $std->vCOFINS = round($vProdItem * 0.03, 2);
-                $make->tagCOFINS($std);
             }
+            $make->tagCOFINS($std);
 
             $nItem++;
         }
@@ -416,6 +422,9 @@ class NfceService
 
                     Log::info('[NFC-e] Nota autorizada — Pedido #' . $emissao->order_id
                         . ' | Chave: ' . $chave . ' | Protocolo: ' . $nProt);
+
+                    // Imprime DANFCE na térmica (best-effort, não aborta em falha)
+                    $this->printDanfceThermal($emissao, $settings);
                 } else {
                     $emissao->update([
                         'status'   => NotaFiscalEmissao::STATUS_REJEITADA,
@@ -456,6 +465,74 @@ class NfceService
         } catch (\Exception $e) {
             Log::warning('[NFC-e] Falha ao gerar DANFCE: ' . $e->getMessage());
             return null;
+        }
+    }
+
+    // ── Impressão térmica do DANFCE ───────────────────────────────────────────
+
+    /**
+     * Imprime o DANFCE na térmica ESC/POS configurada no módulo Autoatendimento.
+     * Best-effort: se a impressora não estiver configurada ou falhar, apenas loga.
+     */
+    private function printDanfceThermal(NotaFiscalEmissao $emissao, NotaFiscalSetting $settings): void
+    {
+        try {
+            $kiosk = KioskSetting::instance();
+            if (! $kiosk->printer_enabled || ! $kiosk->printer_ip) {
+                return;
+            }
+
+            $order = Order::with(['products.product', 'payments'])->find($emissao->order_id);
+            if (! $order) {
+                return;
+            }
+
+            // Extrai qrCode e consumidor do XML autorizado
+            $qrUrl = '';
+            $cpf   = null;
+            try {
+                $xml = new \SimpleXMLElement($emissao->xml_retorno);
+                $qr  = $xml->xpath('//qrCode');
+                if (! empty($qr)) {
+                    $qrUrl = (string) $qr[0];
+                }
+                $cpfNode = $xml->xpath('//dest/CPF');
+                if (! empty($cpfNode)) {
+                    $cpf = (string) $cpfNode[0];
+                }
+            } catch (\Throwable $e) {
+                // ignora — se não tiver QR, imprime sem (fallback)
+            }
+
+            $items = $order->products->map(fn ($p) => [
+                'name'       => $p->name,
+                'quantity'   => (int) $p->quantity,
+                'unit_price' => (float) $p->price_without_tax,
+            ])->toArray();
+
+            $payment = $order->payments->first();
+            $payType = $payment ? match ($payment->identifier) {
+                'credit-card-payment', 'card-payment', 'mercadopago' => 'credit_card',
+                'debit-card-payment'                                 => 'debit_card',
+                'pix-payment', 'pix'                                 => 'pix',
+                default                                              => 'outros',
+            } : 'outros';
+
+            (new EscPosPrinterService())->printDanfce(
+                items:         $items,
+                total:         (float) $order->total,
+                paymentType:   $payType,
+                nNF:           (int) $emissao->n_nf,
+                serie:         (int) $emissao->serie,
+                chaveAcesso:   (string) $emissao->chave,
+                nProt:         (string) $emissao->protocolo,
+                qrUrl:         $qrUrl,
+                cpfConsumidor: $cpf,
+                setting:       $kiosk,
+                homologacao:   ((int) $settings->ambiente === 2),
+            );
+        } catch (\Throwable $e) {
+            Log::warning('[NFC-e] Falha ao imprimir DANFCE na térmica: ' . $e->getMessage());
         }
     }
 

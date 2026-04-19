@@ -64,3 +64,8 @@ public/hot
 storage/dotenv-editor
 .cloud
 ns
+*.md
+.remember/tmp/save-session.pid
+public/build/.DS_Store
+public/build/.DS_Store
+public/build/.DS_Store

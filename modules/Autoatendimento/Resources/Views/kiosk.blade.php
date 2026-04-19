@@ -9,7 +9,7 @@
 /* ── Sidebar de categorias ── */
 .cat-btn {
     display: flex; flex-direction: column; align-items: center;
-    gap: 8px; padding: 14px 6px; border-radius: 18px;
+    gap: 10px; padding: 16px 6px; border-radius: 18px;
     width: calc(100% - 14px); margin: 0 7px;
     transition: all 0.2s cubic-bezier(0.4,0,0.2,1);
     cursor: pointer; border: none; background: transparent;
@@ -25,12 +25,14 @@
 
 .cat-btn:active { transform: scale(0.93); }
 .cat-icon {
-    width: 52px; height: 52px; border-radius: 14px;
+    width: 64px; height: 64px; border-radius: 18px;
     display: flex; align-items: center; justify-content: center;
-    font-size: 22px; transition: all 0.2s ease;
+    font-size: 30px; line-height: 1; transition: all 0.2s ease;
     background: rgba(255,255,255,0.07);
 }
-.cat-btn.active .cat-icon { background: rgba(255,255,255,0.22); }
+.cat-icon i { font-size: 28px; }
+/* Usa background-color para não sobrescrever o background-image inline do cat-icon-img */
+.cat-btn.active .cat-icon { background-color: rgba(255,255,255,0.22); }
 
 /* Logo na sidebar */
 .sidebar-logo {
@@ -40,22 +42,30 @@
     margin-bottom: 4px;
 }
 .sidebar-logo img {
-    max-width: 80px; max-height: 52px;
+    max-width: 96px; max-height: 62px;
     object-fit: contain; filter: brightness(0) invert(1);
     opacity: 0.9;
 }
-/* ícone com foto de produto */
+/* ícone com foto de produto — quadrado 1:1 preenchendo o card */
 .cat-icon-img {
+    width: 100%; height: auto; aspect-ratio: 1 / 1;
     background-size: cover;
     background-position: center;
     border: 2px solid rgba(255,255,255,0.12);
-    border-radius: 50%;
+    border-radius: 16px;
+    transform-origin: center;
+    transition: transform 0.25s ease, opacity 0.25s ease, border-color 0.2s ease;
 }
-.cat-btn.active .cat-icon-img { border-color: rgba(255,255,255,0.45); }
+/* Ativa: zoom-in + 80% opacidade, mantém a imagem visível */
+.cat-btn.active .cat-icon-img {
+    border-color: rgba(255,255,255,0.45);
+    transform: scale(1.08);
+    opacity: 0.8;
+}
 .cat-label {
-    font-size: 10px; font-weight: 700; text-align: center;
+    font-size: 12px; font-weight: 700; text-align: center;
     line-height: 1.2; color: rgba(255,255,255,0.4);
-    max-width: 88px; overflow: hidden;
+    max-width: 108px; overflow: hidden;
     display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
     transition: color 0.2s ease;
 }
@@ -68,7 +78,7 @@
 .cat-btn.active::before {
     content: '';
     position: absolute; left: -7px; top: 50%; transform: translateY(-50%);
-    width: 4px; height: 32px; border-radius: 0 4px 4px 0;
+    width: 4px; height: 40px; border-radius: 0 4px 4px 0;
     background: #fff; opacity: 0.6;
 }
 .cat-btn { position: relative; }
@@ -273,10 +283,11 @@
 
             {{-- ── Sidebar de categorias ── --}}
             <aside id="cat-sidebar" class="flex-shrink-0 overflow-y-auto no-scrollbar"
-                   style="width:100px; background:{{ $setting->cor_sidebar ?? '#111116' }};">
+                   style="width:120px; background:{{ $setting->cor_sidebar ?? '#111116' }};">
 
-                {{-- Wrapper centraliza verticalmente quando cabe; expande quando transborda --}}
-                <div class="flex flex-col gap-1 py-3 min-h-full justify-center">
+                {{-- Categorias alinhadas na metade inferior, com folga para não ficar atrás da cart-bar fixa (~110px) --}}
+                <div class="flex flex-col gap-1 pt-3 min-h-full justify-end"
+                     style="padding-bottom: calc(110px + 1rem);">
 
                     {{-- "Todos" --}}
                     <button type="button" @click="selectedCategory = null"
@@ -307,7 +318,7 @@
             </aside>
 
             {{-- ── Área de produtos ── --}}
-            <main class="flex-1 overflow-y-auto no-scrollbar" style="padding-bottom: 90px;">
+            <main class="flex-1 overflow-y-auto no-scrollbar" style="padding-bottom: 120px;">
 
                 {{-- Banner do cardápio --}}
                 @if($setting->banner_url)
@@ -407,7 +418,7 @@
 
         {{-- ── Cart bar flutuante ── --}}
         <div class="fixed bottom-0 left-0 right-0 z-40 cart-bar">
-            <div class="flex items-center gap-3 px-4 py-3"
+            <div class="flex items-center gap-3 px-4 py-4"
                  style="padding-left: calc(120px + 1rem);">
                 <div class="flex-1 min-w-0">
                     <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider leading-none">
@@ -422,14 +433,16 @@
                 </div>
                 <button type="button" @click="openCart()"
                         :disabled="totalItems === 0"
-                        class="flex items-center gap-2.5 px-6 py-3 rounded-2xl font-bold text-sm
-                               transition-all duration-150 flex-shrink-0"
+                        class="flex items-center justify-center gap-3 px-10 rounded-3xl font-bold text-lg
+                               transition-all duration-150 flex-shrink-0 active:scale-95"
+                        style="min-width:220px; min-height:72px;"
                         :style="totalItems > 0
-                            ? 'background-color: #16a34a; color:white; box-shadow:0 4px 16px rgba(22,163,74,0.35);'
-                            : 'background-color:#f0f0f2; color:#b0b0b8; cursor:not-allowed;'">
+                            ? 'background-color: #16a34a; color:white; box-shadow:0 6px 20px rgba(22,163,74,0.35); min-width:220px; min-height:72px;'
+                            : 'background-color:#f0f0f2; color:#b0b0b8; cursor:not-allowed; min-width:220px; min-height:72px;'">
+                    <i class="fal fa-bag-shopping text-xl"></i>
                     <span>Ver Pedido</span>
                     <template x-if="totalItems > 0">
-                        <span class="w-5 h-5 rounded-full bg-white/25 text-[11px] font-black
+                        <span class="w-7 h-7 rounded-full bg-white/25 text-sm font-black
                                      flex items-center justify-center"
                               x-text="totalItems"></span>
                     </template>
@@ -580,8 +593,13 @@
                     </p>
                     <template x-for="item in cartItems" :key="item.id">
                         <div class="flex items-center gap-3 py-4 border-b border-gray-50 last:border-0">
+                            {{-- Thumbnail 1:1 --}}
+                            <img :src="item.image || '/images/placeholder.png'"
+                                 :alt="item.name"
+                                 class="flex-shrink-0 rounded-xl object-cover bg-gray-100"
+                                 style="width:64px; height:64px; aspect-ratio:1/1;">
                             <div class="flex-1 min-w-0">
-                                <p class="font-semibold text-gray-900 leading-snug text-sm"
+                                <p class="font-semibold text-gray-900 leading-snug text-sm truncate"
                                    x-text="item.name"></p>
                                 <p class="text-xs text-gray-400 mt-0.5"
                                    x-text="item.quantity + '× R$ ' + item.price.toFixed(2).replace('.', ',')"></p>
@@ -652,13 +670,18 @@
                 </div>
                 <div class="px-4">
                     <template x-for="item in cartItems" :key="item.id">
-                        <div class="flex items-center justify-between py-3 border-b border-gray-50 last:border-0">
-                            <div>
-                                <p class="font-semibold text-gray-800 text-sm" x-text="item.name"></p>
+                        <div class="flex items-center gap-3 py-3 border-b border-gray-50 last:border-0">
+                            {{-- Thumbnail 1:1 --}}
+                            <img :src="item.image || '/images/placeholder.png'"
+                                 :alt="item.name"
+                                 class="flex-shrink-0 rounded-xl object-cover bg-gray-100"
+                                 style="width:56px; height:56px; aspect-ratio:1/1;">
+                            <div class="flex-1 min-w-0">
+                                <p class="font-semibold text-gray-800 text-sm truncate" x-text="item.name"></p>
                                 <p class="text-xs text-gray-400"
                                    x-text="item.quantity + '× R$ ' + item.price.toFixed(2).replace('.', ',')"></p>
                             </div>
-                            <p class="font-bold text-sm"
+                            <p class="font-bold text-sm flex-shrink-0"
                                style="color: {{ $setting->cor_primaria }};"
                                x-text="'R$ ' + item.total.toFixed(2).replace('.', ',')"></p>
                         </div>

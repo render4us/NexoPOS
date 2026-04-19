@@ -233,6 +233,258 @@ class EscPosPrinterService
         return $d;
     }
 
+    // ── DANFCE (real ou mock) ────────────────────────────────────────────
+
+    /**
+     * Imprime um DANFCE na térmica. Funciona tanto para NFC-e real (autorizada pela
+     * SEFAZ) quanto para mock de homologação — basta passar os valores corretos de
+     * chave/protocolo/qrUrl e setar $homologacao=true no ambiente de teste.
+     */
+    public function printDanfce(
+        array $items,
+        float $total,
+        string $paymentType,
+        int $nNF,
+        int $serie,
+        string $chaveAcesso,
+        string $nProt,
+        string $qrUrl,
+        ?string $cpfConsumidor,
+        KioskSetting $setting,
+        bool $homologacao = false
+    ): bool {
+        if (! $setting->printer_enabled || ! $setting->printer_ip) {
+            return false;
+        }
+
+        $this->cols = (int) ($setting->printer_columns ?: 48);
+
+        $data = $this->buildDanfceReceipt(
+            $items, $total, $paymentType, $nNF, $serie,
+            $cpfConsumidor, $setting, $chaveAcesso, $nProt, $qrUrl, $homologacao
+        );
+
+        $label = $homologacao ? 'danfce-homolog' : 'danfce';
+        return $this->send($data, $setting->printer_ip, $setting->printer_port ?: 9100, $label);
+    }
+
+    /**
+     * Atalho para teste de layout — gera chave/protocolo/qrUrl fictícios e imprime em homologação.
+     */
+    public function printMockDanfce(
+        array $items,
+        float $total,
+        string $paymentType,
+        int $orderId,
+        ?string $cpfConsumidor,
+        KioskSetting $setting
+    ): bool {
+        $chaveAcesso = $this->buildMockChave($setting, $orderId);
+        $nProt       = '135' . str_pad(date('dmY') . str_pad($orderId, 8, '0', STR_PAD_LEFT), 12, '0', STR_PAD_LEFT);
+        $qrUrl       = 'https://homologacao.nfce.fazenda.sp.gov.br/qrcode'
+                    . '?p=' . $chaveAcesso . '|2|2|1|MOCK' . md5($chaveAcesso);
+
+        return $this->printDanfce(
+            $items, $total, $paymentType,
+            $orderId, 1,
+            $chaveAcesso, $nProt, $qrUrl,
+            $cpfConsumidor, $setting,
+            homologacao: true
+        );
+    }
+
+    private function buildDanfceReceipt(
+        array $items, float $total, string $paymentType, int $nNF, int $serie,
+        ?string $cpfConsumidor, KioskSetting $setting,
+        string $chaveAcesso, string $nProt, string $qrUrl,
+        bool $homologacao
+    ): string {
+        $sep = str_repeat('-', $this->cols);
+
+        $storeName    = ns()->option->get('ns_store_name', $setting->titulo ?: 'LOJA');
+        $storeCnpj    = ns()->option->get('ns_store_additional', '');
+        $storeAddress = ns()->option->get('ns_store_address', '');
+        $storeCity    = ns()->option->get('ns_store_city', '');
+
+        $d = self::INIT;
+
+        // ── Cabeçalho ────────────────────────────────────────────────────
+        $d .= self::ALIGN_CENTER . self::BOLD_ON;
+        $d .= $this->truncate(strtoupper($storeName), $this->cols) . self::LF;
+        $d .= self::BOLD_OFF;
+        if ($storeCnpj) {
+            $d .= 'CNPJ: ' . $storeCnpj . self::LF;
+        }
+        if ($storeAddress) {
+            $d .= $this->truncate($storeAddress, $this->cols) . self::LF;
+        }
+        if ($storeCity) {
+            $d .= $this->truncate($storeCity, $this->cols) . self::LF;
+        }
+
+        // ── Título DANFCE ────────────────────────────────────────────────
+        $d .= self::ALIGN_LEFT . $sep . self::LF;
+        $d .= self::ALIGN_CENTER . self::BOLD_ON;
+        $d .= 'DANFE NFC-e' . self::LF;
+        $d .= self::BOLD_OFF;
+        $d .= 'Documento Auxiliar da Nota Fiscal' . self::LF;
+        $d .= 'de Consumidor Eletronica' . self::LF;
+        $d .= self::ALIGN_LEFT . $sep . self::LF;
+
+        // ── Itens (formato DANFCE) ───────────────────────────────────────
+        $d .= self::BOLD_ON;
+        $d .= $this->padLine('#   DESCRICAO                   QTD', 'VL TOTAL') . self::LF;
+        $d .= self::BOLD_OFF;
+        $d .= $sep . self::LF;
+
+        $nItem     = 1;
+        $totalQtd  = 0;
+        foreach ($items as $item) {
+            $name  = $item['name'] ?? '';
+            $qty   = (int) ($item['quantity'] ?? 1);
+            $price = (float) ($item['unit_price'] ?? 0);
+            $sub   = $qty * $price;
+            $totalQtd += $qty;
+
+            $line1 = sprintf('%03d %s', $nItem, $this->truncate($name, $this->cols - 4));
+            $d .= $line1 . self::LF;
+
+            $right = 'R$ ' . number_format($sub, 2, ',', '.');
+            $left  = sprintf('    %dx R$ %s /UN', $qty, number_format($price, 2, ',', '.'));
+            $d .= $this->padLine($left, $right) . self::LF;
+
+            $nItem++;
+        }
+
+        $d .= $sep . self::LF;
+
+        // ── Totais ───────────────────────────────────────────────────────
+        $d .= $this->padLine('QTD. TOTAL DE ITENS', (string) $totalQtd) . self::LF;
+        $d .= self::BOLD_ON . self::SIZE_TALL;
+        $d .= $this->padLine('VALOR A PAGAR R$', number_format($total, 2, ',', '.')) . self::LF;
+        $d .= self::SIZE_NORMAL . self::BOLD_OFF;
+
+        $payLabel = match ($paymentType) {
+            'credit_card' => 'Cartao de Credito',
+            'debit_card'  => 'Cartao de Debito',
+            'pix'         => 'PIX',
+            default       => 'Outros',
+        };
+        $d .= $this->padLine('FORMA PAGTO.', $payLabel) . self::LF;
+        $d .= $this->padLine('VALOR PAGO R$', number_format($total, 2, ',', '.')) . self::LF;
+        $d .= $this->padLine('TROCO R$', '0,00') . self::LF;
+
+        // ── Tarja homologação (apenas em ambiente 2) ────────────────────
+        if ($homologacao) {
+            $d .= $sep . self::LF;
+            $d .= self::ALIGN_CENTER . self::BOLD_ON . self::SIZE_TALL;
+            $d .= 'EMITIDA EM HOMOLOGACAO' . self::LF;
+            $d .= 'SEM VALOR FISCAL' . self::LF;
+            $d .= self::SIZE_NORMAL . self::BOLD_OFF;
+            $d .= self::ALIGN_LEFT . $sep . self::LF;
+        } else {
+            $d .= $sep . self::LF;
+        }
+
+        // ── Consumidor ───────────────────────────────────────────────────
+        $d .= self::BOLD_ON . 'CONSUMIDOR' . self::BOLD_OFF . self::LF;
+        if ($cpfConsumidor) {
+            $cpf = preg_replace('/\D/', '', $cpfConsumidor);
+            if (strlen($cpf) === 11) {
+                $cpfFmt = substr($cpf, 0, 3) . '.' . substr($cpf, 3, 3) . '.' . substr($cpf, 6, 3) . '-' . substr($cpf, 9, 2);
+                $d .= 'CPF: ' . $cpfFmt . self::LF;
+            } else {
+                $d .= 'CPF: ' . $cpf . self::LF;
+            }
+        } else {
+            $d .= 'CONSUMIDOR NAO IDENTIFICADO' . self::LF;
+        }
+        $d .= $sep . self::LF;
+
+        // ── Identificação da NFC-e ───────────────────────────────────────
+        $d .= self::ALIGN_CENTER;
+        $d .= 'NFC-e no. ' . str_pad((string) $nNF, 9, '0', STR_PAD_LEFT)
+            . ' Serie ' . str_pad((string) $serie, 3, '0', STR_PAD_LEFT) . self::LF;
+        $d .= 'Emissao: ' . date('d/m/Y H:i:s') . self::LF;
+        $d .= $this->truncate('Protocolo: ' . $nProt, $this->cols) . self::LF;
+        $d .= self::ALIGN_LEFT . $sep . self::LF;
+
+        // ── Chave de acesso ──────────────────────────────────────────────
+        $d .= self::ALIGN_CENTER . self::BOLD_ON . 'CHAVE DE ACESSO' . self::BOLD_OFF . self::LF;
+        $d .= $this->formatChave($chaveAcesso) . self::LF;
+        $d .= self::LF;
+        $d .= 'Consulte pela Chave de Acesso em:' . self::LF;
+        $d .= 'www.nfce.fazenda.sp.gov.br/consulta' . self::LF;
+        $d .= self::ALIGN_LEFT . $sep . self::LF;
+
+        // ── QR Code (ESC/POS nativo) ─────────────────────────────────────
+        $d .= self::ALIGN_CENTER;
+        $d .= $this->qrCodeCommand($qrUrl);
+        $d .= self::LF;
+        $d .= self::ALIGN_LEFT . $sep . self::LF;
+
+        // ── Rodapé ───────────────────────────────────────────────────────
+        $d .= self::LF . self::LF . self::LF;
+        $d .= self::CUT_PARTIAL;
+
+        return $d;
+    }
+
+    /**
+     * Gera uma chave de acesso NFC-e fake de 44 dígitos seguindo o layout oficial.
+     * cUF(2) + AAMM(4) + CNPJ(14) + mod(2=65) + serie(3) + nNF(9) + tpEmis(1) + cNF(8) + cDV(1)
+     */
+    private function buildMockChave(KioskSetting $setting, int $orderId): string
+    {
+        $cUF     = '35';                              // SP fixo para mock
+        $aammm   = date('ym');
+        $cnpj    = str_pad(preg_replace('/\D/', '', ns()->option->get('ns_store_additional', '46926665000121')), 14, '0', STR_PAD_LEFT);
+        $mod     = '65';
+        $serie   = '001';
+        $nNF     = str_pad((string) $orderId, 9, '0', STR_PAD_LEFT);
+        $tpEmis  = '1';
+        $cNF     = str_pad((string) mt_rand(1, 99999999), 8, '0', STR_PAD_LEFT);
+
+        $base = $cUF . $aammm . $cnpj . $mod . $serie . $nNF . $tpEmis . $cNF;
+
+        // DV por módulo 11 (pesos 2..9 cíclicos da direita para a esquerda)
+        $pesos = [2, 3, 4, 5, 6, 7, 8, 9];
+        $soma  = 0;
+        $len   = strlen($base);
+        for ($i = $len - 1, $p = 0; $i >= 0; $i--, $p++) {
+            $soma += (int) $base[$i] * $pesos[$p % 8];
+        }
+        $resto = $soma % 11;
+        $dv    = ($resto < 2) ? 0 : 11 - $resto;
+
+        return $base . $dv;
+    }
+
+    private function formatChave(string $chave): string
+    {
+        // Agrupa de 4 em 4 com espaços (layout oficial do DANFCE)
+        return trim(chunk_split($chave, 4, ' '));
+    }
+
+    /**
+     * Comando ESC/POS nativo para imprimir QR Code (Epson GS ( k).
+     * Compatível com Epson, Bematech MP-4200 TH, Elgin i9, e maioria das térmicas modernas.
+     */
+    private function qrCodeCommand(string $data, int $size = 7, string $ecc = 'M'): string
+    {
+        $eccMap = ['L' => 0x30, 'M' => 0x31, 'Q' => 0x32, 'H' => 0x33];
+        $eccVal = $eccMap[$ecc] ?? 0x31;
+
+        $cmd  = "\x1D(k\x04\x00\x31\x41\x32\x00";                             // select model 2
+        $cmd .= "\x1D(k\x03\x00\x31\x43" . chr($size);                         // module size
+        $cmd .= "\x1D(k\x03\x00\x31\x45" . chr($eccVal);                       // error correction
+        $len  = strlen($data) + 3;
+        $cmd .= "\x1D(k" . chr($len & 0xFF) . chr(($len >> 8) & 0xFF) . "\x31\x50\x30" . $data;  // store
+        $cmd .= "\x1D(k\x03\x00\x31\x51\x30";                                  // print
+
+        return $cmd;
+    }
+
     // ── Helpers de formatação ────────────────────────────────────────────
 
     private function padLine(string $left, string $right): string

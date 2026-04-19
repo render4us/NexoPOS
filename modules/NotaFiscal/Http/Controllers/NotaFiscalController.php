@@ -24,8 +24,21 @@ class NotaFiscalController extends Controller
         return View::make('NotaFiscal::pages.configuracoes', compact('settings'));
     }
 
-    public function salvarConfiguracoes(Request $request): JsonResponse
+    public function salvarConfiguracoes(Request $request)
     {
+        // Remove máscaras dos campos numéricos antes de validar
+        $digitsOnly = fn ($v) => $v === null ? null : preg_replace('/\D/', '', (string) $v);
+
+        $request->merge([
+            'cnpj'          => $digitsOnly($request->input('cnpj')),
+            'cep'           => $digitsOnly($request->input('cep')),
+            'telefone'      => $digitsOnly($request->input('telefone')),
+            'cnae'          => $digitsOnly($request->input('cnae')),
+            'cod_municipio' => $digitsOnly($request->input('cod_municipio')),
+            'ncm_padrao'    => $digitsOnly($request->input('ncm_padrao')),
+            'uf'            => strtoupper((string) $request->input('uf')),
+        ]);
+
         $data = $request->validate([
             'ativo'                  => 'boolean',
             'ambiente'               => 'required|in:1,2',
@@ -63,6 +76,11 @@ class NotaFiscalController extends Controller
             $data['certificado_conteudo'] = base64_encode(file_get_contents($pfx->getRealPath()));
         }
 
+        // Remove senha vazia do payload para não sobrescrever a existente
+        if (empty($data['certificado_senha'])) {
+            unset($data['certificado_senha']);
+        }
+
         $settings = NotaFiscalSetting::first();
 
         if ($settings) {
@@ -71,10 +89,16 @@ class NotaFiscalController extends Controller
             NotaFiscalSetting::create($data);
         }
 
-        return response()->json([
-            'status'  => 'success',
-            'message' => __('Configurações salvas com sucesso.'),
-        ]);
+        if ($request->expectsJson()) {
+            return response()->json([
+                'status'  => 'success',
+                'message' => __('Configurações salvas com sucesso.'),
+            ]);
+        }
+
+        return redirect()
+            ->route('nota-fiscal.configuracoes')
+            ->with('success', __('Configurações salvas com sucesso.'));
     }
 
     // ── Listagem de emissões ───────────────────────────────────────────────────

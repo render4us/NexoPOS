@@ -27,6 +27,23 @@
         </div>
     @endif
 
+    {{-- Erros de validação --}}
+    @if ($errors->any())
+        <div class="border border-error-secondary bg-error-primary rounded-lg mb-6 px-4 py-3">
+            <div class="flex items-start gap-3">
+                <i class="fal fa-circle-exclamation text-2xl text-error-tertiary flex-shrink-0 mt-0.5"></i>
+                <div class="text-error-tertiary text-sm">
+                    <p class="font-semibold mb-1">{{ __('Não foi possível salvar. Corrija os campos abaixo:') }}</p>
+                    <ul class="list-disc ml-5 space-y-0.5">
+                        @foreach ($errors->all() as $msg)
+                            <li>{{ $msg }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            </div>
+        </div>
+    @endif
+
     <form method="POST"
           action="{{ route('nota-fiscal.configuracoes.salvar') }}"
           enctype="multipart/form-data"
