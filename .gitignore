@@ -69,3 +69,4 @@ ns
 public/build/.DS_Store
 public/build/.DS_Store
 public/build/.DS_Store
+*.code-workspace

@@ -1,4 +1,5 @@
 {
+  "validation.different": "O campo {attribute} e {other} devem ser diferentes.",
   "displaying {perPage} on {items} items": "exibindo {perPage} de {items} itens",
   "The document has been generated.": "O documento foi gerado.",
   "Unexpected error occurred.": "Ocorreu um erro inesperado.",

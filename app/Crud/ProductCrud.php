@@ -195,7 +195,7 @@ class ProductCrud extends CrudService
                 errors: [],
                 label: __( 'Convert Unit' ),
                 name: 'convert_unit_id',
-                validation: 'different:variations.*.units.selling_group.*.unit_id',
+                validation: 'nullable|different:variations.*.units.selling_group.*.unit_id',
                 options: Helper::toJsOptions( $units, [ 'id', 'name' ] ),
                 value: '',
                 description: __( 'The unit that is selected for convertion by default.' ),
