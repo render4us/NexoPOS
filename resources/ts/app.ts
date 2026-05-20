@@ -39,6 +39,7 @@ const nsBestProductsReport          =   defineAsyncComponent( () => import( './p
 const nsPaymentTypesReport          =   defineAsyncComponent( () => import( './pages/dashboard/reports/ns-payment-types-report.vue' ) );
 const nsCustomersStatementReport    =   defineAsyncComponent( () => import( './pages/dashboard/reports/ns-customers-statement-report.vue' ) );
 const nsStockAdjustment             =   defineAsyncComponent( () => import( './pages/dashboard/products/ns-stock-adjustment.vue' ) );
+const nsCategoriesReorder           =   defineAsyncComponent( () => import( './pages/dashboard/products/ns-categories-reorder.vue' ) );
 const nsOrderInvoice                =   defineAsyncComponent( () => import( './pages/dashboard/orders/ns-order-invoice.vue' ) );
 const nsPrintLabel                  =   defineAsyncComponent( () => import( './pages/dashboard/products/ns-print-label.vue' ) );
 const nsTransactionsRules           =   defineAsyncComponent( () => import( './pages/dashboard/transactions/ns-transactions-rules.vue' ) );
@@ -83,6 +84,7 @@ const allComponents    =   Object.assign({
     nsTransactionsRules,
 
     nsStockAdjustment,
+    nsCategoriesReorder,
     nsOrderInvoice,
     ...baseComponents
 }, nsExtraComponents );

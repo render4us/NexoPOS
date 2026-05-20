@@ -41,10 +41,15 @@ class CategoryController extends DashboardController
         }
 
         if ( request()->query( 'parent' ) === 'true' ) {
-            return ProductCategory::where( 'parent_id', null )->get();
+            return ProductCategory::where( 'parent_id', null )
+                ->orderBy( 'position' )
+                ->orderBy( 'name' )
+                ->get();
         }
 
-        return ProductCategory::get();
+        return ProductCategory::orderBy( 'position' )
+            ->orderBy( 'name' )
+            ->get();
     }
 
     /**
@@ -215,6 +220,73 @@ class CategoryController extends DashboardController
         return ProductCategoryCrud::table();
     }
 
+    public function showReorderPage()
+    {
+        $rootCategories = ProductCategory::whereNull( 'parent_id' )
+            ->orWhere( 'parent_id', 0 )
+            ->orderBy( 'position' )
+            ->orderBy( 'name' )
+            ->get()
+            ->map( function ( ProductCategory $category ) {
+                return [
+                    'id' => $category->id,
+                    'name' => $category->name,
+                    'position' => (int) $category->position,
+                    'children' => $category->subCategories()
+                        ->orderBy( 'position' )
+                        ->orderBy( 'name' )
+                        ->get()
+                        ->map( fn ( ProductCategory $child ) => [
+                            'id' => $child->id,
+                            'name' => $child->name,
+                            'position' => (int) $child->position,
+                            'parent_id' => (int) $child->parent_id,
+                        ] )
+                        ->values(),
+                ];
+            } );
+
+        return view( 'pages.dashboard.products.categories.reorder', [
+            'title' => __( 'Reordenar Categorias' ),
+            'description' => __( 'Arraste para definir a ordem em que as categorias aparecem no Kiosk, no PDV e na listagem do admin.' ),
+            'categories' => $rootCategories,
+        ] );
+    }
+
+    public function saveReorder( Request $request )
+    {
+        $payload = $request->input( 'categories', [] );
+
+        if ( ! is_array( $payload ) || empty( $payload ) ) {
+            throw new NotFoundException( __( 'Nenhuma categoria recebida para reordenação.' ) );
+        }
+
+        $updated = 0;
+
+        foreach ( $payload as $item ) {
+            $id = (int) ( $item['id'] ?? 0 );
+            $position = (int) ( $item['position'] ?? 0 );
+
+            if ( $id <= 0 ) {
+                continue;
+            }
+
+            $category = ProductCategory::find( $id );
+
+            if ( $category instanceof ProductCategory ) {
+                $category->position = $position;
+                $category->save();
+                $updated++;
+            }
+        }
+
+        return [
+            'status' => 'success',
+            'message' => __( 'A ordem das categorias foi atualizada.' ),
+            'data' => [ 'updated' => $updated ],
+        ];
+    }
+
     public function createCategory()
     {
         return ProductCategoryCrud::form();
@@ -266,6 +338,8 @@ class CategoryController extends DashboardController
                 'categories' => $category
                     ->subCategories()
                     ->displayOnPOS()
+                    ->orderBy( 'position' )
+                    ->orderBy( 'name' )
                     ->get(),
                 'previousCategory' => ProductCategory::find( $category->parent_id ) ?? null, // means should return to the root
                 'currentCategory' => $category, // means should return to the root
@@ -284,6 +358,8 @@ class CategoryController extends DashboardController
                     $this->applyHideCategories( $query );
                 } )
                 ->displayOnPOS()
+                ->orderBy( 'position' )
+                ->orderBy( 'name' )
                 ->get(),
         ];
     }

@@ -212,6 +212,11 @@ class MenuService
                         'permissions' => [ 'nexopos.create.categories' ],
                         'href' => ns()->url( '/dashboard/products/categories/create' ),
                     ],
+                    'reorder-categories' => [
+                        'label' => __( 'Reordenar Categorias' ),
+                        'permissions' => [ 'nexopos.update.categories' ],
+                        'href' => ns()->url( '/dashboard/products/categories/reorder' ),
+                    ],
                     'units' => [
                         'label' => __( 'Units' ),
                         'permissions' => [ 'nexopos.read.products-units' ],

@@ -175,6 +175,12 @@ class ProductCategoryCrud extends CrudService
                             'description' => __( 'If this category should be a child category of an existing category' ),
                             'value' => $entry->parent_id ?? '',
                         ], [
+                            'type' => 'number',
+                            'name' => 'position',
+                            'label' => __( 'Posição' ),
+                            'description' => __( 'Define a ordem de exibição. Menor número aparece primeiro. Use a página "Reordenar" para arrastar visualmente.' ),
+                            'value' => $entry->position ?? 0,
+                        ], [
                             'type' => 'ckeditor',
                             'name' => 'description',
                             'label' => __( 'Description' ),
@@ -312,6 +318,11 @@ class ProductCategoryCrud extends CrudService
         return [
             'name' => [
                 'label' => __( 'Name' ),
+                '$direction' => '',
+                '$sort' => true,
+            ],
+            'position' => [
+                'label' => __( 'Posição' ),
                 '$direction' => '',
                 '$sort' => true,
             ],

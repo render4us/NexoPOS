@@ -76,9 +76,9 @@
       "_runtime-core.esm-bundler-Bzup5G8m.js"
     ]
   },
-  "_ns-prompt-popup-!~{00T}~.js": {
+  "_ns-prompt-popup-!~{00U}~.js": {
     "file": "assets/ns-prompt-popup-CNox9BoV.css",
-    "src": "_ns-prompt-popup-!~{00T}~.js"
+    "src": "_ns-prompt-popup-!~{00U}~.js"
   },
   "_ns-prompt-popup-rCDsLbUR.js": {
     "file": "assets/ns-prompt-popup-rCDsLbUR.js",
@@ -158,7 +158,7 @@
     "isEntry": true
   },
   "resources/scss/app.scss": {
-    "file": "assets/app-C5IXjQtn.css",
+    "file": "assets/app-QyhL-Hxo.css",
     "src": "resources/scss/app.scss",
     "isEntry": true
   },
@@ -258,7 +258,7 @@
     "isEntry": true
   },
   "resources/ts/app.ts": {
-    "file": "assets/app-SemYXFyM.js",
+    "file": "assets/app-lXgWzOcg.js",
     "name": "app",
     "src": "resources/ts/app.ts",
     "isEntry": true,
@@ -300,6 +300,7 @@
       "resources/ts/pages/dashboard/reports/ns-payment-types-report.vue",
       "resources/ts/pages/dashboard/reports/ns-customers-statement-report.vue",
       "resources/ts/pages/dashboard/products/ns-stock-adjustment.vue",
+      "resources/ts/pages/dashboard/products/ns-categories-reorder.vue",
       "resources/ts/pages/dashboard/orders/ns-order-invoice.vue",
       "resources/ts/pages/dashboard/products/ns-print-label.vue",
       "resources/ts/pages/dashboard/transactions/ns-transactions-rules.vue",
@@ -725,6 +726,19 @@
       "_chart-XFVd3zf7.js",
       "_ns-avatar-image--GgTfTV1.js",
       "_join-array-C2w_e3OW.js"
+    ]
+  },
+  "resources/ts/pages/dashboard/products/ns-categories-reorder.vue": {
+    "file": "assets/ns-categories-reorder-D_ZTM1-R.js",
+    "name": "ns-categories-reorder",
+    "src": "resources/ts/pages/dashboard/products/ns-categories-reorder.vue",
+    "isDynamicEntry": true,
+    "imports": [
+      "resources/ts/bootstrap.ts",
+      "_currency-vrDNes-g.js",
+      "__plugin-vue_export-helper-DlAUqK2U.js",
+      "_runtime-core.esm-bundler-Bzup5G8m.js",
+      "_chart-XFVd3zf7.js"
     ]
   },
   "resources/ts/pages/dashboard/products/ns-print-label.vue": {
